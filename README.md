@@ -1,44 +1,42 @@
-# Git hours
+# git-csv-timesheet
 
-[![Build Status](https://travis-ci.org/kimmobrunfeldt/git-hours.svg)](https://travis-ci.org/kimmobrunfeldt/git-hours)
+> Logging hours? No thanks. Let git-csv-timesheet estimate time spent and print out a csv. 
 
-Estimate time spent on a git repository.
-
-**For example time spent on [Twitter's Bootstrap](https://github.com/twbs/bootstrap)**
-
-```javascript
-➜  bootstrap git:(master) git hours
-{
-
-  ...
-
-  "total": {
-    "hours": 9959,
-    "commits": 11470
-  }
-}
-```
-
-From a person working 8 hours per day, it would take more than 3 years to build Bootstrap.
-
-*Please note that the information might not be accurate enough to be used in billing.*
 
 ## Install
+```
+yarn add global git-csv-timesheet
 
-    $ npm install -g git-hours
+# or with npm 
 
-Has been tested and works with node 0.12, 4.x, 5.x, 6.x versions. **Do not use node version
-below 0.12**.
+npm install -g git-csv-timesheet
+```
 
-**NOTE:** If for some reason `git hours` won't work, try to `npm install -g nodegit`.
 
-`git-hours` depends on [nodegit](https://github.com/nodegit/nodegit).
-It might be a bit tricky to install. If installing git-hours fails for some
-reason, probably it was because nodegit couldn't be installed.
-Check [their documentation](https://github.com/nodegit/nodegit#getting-started) for troubleshooting.
+## Basic usage
 
-If the installation is too troublesome, you can try to [install with Vagrant](#install-with-vagrant). It should work out of the box once you get the Vagrant
-correctly installed to your machine.
+```bash
+$ timesheet  
+date;hours
+2020-07-01;7.5
+2020-07-02;8
+2020-07-03;10
+
+# Write to file
+$ timesheet > report.csv 
+```
+
+[git-csv-timesheet](.) will by default print out time spent this month in the current repository. 
+
+- For more advanced use, see [Advanced usage](#advanced-usage).
+- To override month, print for a week, year or  specified date range, see [time range options](#time-range).
+- To gather data from multiple repositories at once, see [timesheetrc config](#timesheetrc-config).
+- To gather data on individual tasks, see [individual tasks](#task-tracking).
+
+[git-csv-timesheet](.) guesses the time spent on individual repositories based on 
+timestamps of git commits. Read more about [how it works](#how_it_works) and [configuring assumptions](#advanced-usage).
+
+**The generated output might not be accurate enough to use for billing.**
 
 ## How it works
 
@@ -79,103 +77,159 @@ made by individual authors.*
 
 <br>
 
-The algorithm in [~30 lines of code](https://github.com/kimmobrunfeldt/git-hours/blob/8aaeee237cb9d9028e7a2592a25ad8468b1f45e4/index.js#L114-L143).
+The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobrunfeldt/git-hours) and is about [30 lines of code](https://github.com/kimmobrunfeldt/git-hours/blob/8aaeee237cb9d9028e7a2592a25ad8468b1f45e4/index.js#L114-L143).
 
-## Usage
+## Options
 
-In root of a git repository run:
+### Advanced usage
 
-    $ git hours
-
-**Note: repository is not detected if you are not in the root of repository!**
-
-Help
-
-    Usage: git hours [options]
+    Usage: timesheet [options]
 
     Options:
-
       -h, --help                                 output usage information
       -V, --version                              output the version number
-      -d, --max-commit-diff [max-commit-diff]    maximum difference in minutes between commits counted to one session. Default: 120
-      -a, --first-commit-add [first-commit-add]  how many minutes first commit of session should add to total. Default: 120
-      -s, --since [since-certain-date]           Analyze data since certain date. [always|yesterday|tonight|lastweek|yyyy-mm-dd] Default: always'
-      -e, --email [emailOther=emailMain]         Group person by email address. Default: none
-      -u, --until [until-certain-date]           Analyze data until certain date. [always|yesterday|today|lastweek|thisweek|yyyy-mm-dd] Default: always
-      -m, --merge-request [false|true]           Include merge requests into calculation.  Default: true
-      -p, --path [git-repo]                      Git repository to analyze. Default: .
-      -b, --branch [branch-name]                 Analyze only data on the specified branch. Default: all branches
+      -c, --config=[path-to-config]              reads config from this path
+      -f, --from=[YYYY-MM-DD]                    counts commits from this date (including)
+      -t, --to=[YYYY-MM-DD]                      counts commits from to date (excluding)
+      -M, --month=[1...12]                       counts commits from this month (defaults to current month, unless year is specified. can not be used with week, from or to)
+      -Y, --year=[YYYY]                          counts commits from this year (defaults to current year)
+      -W, --week=[1-53]                          counts commits from this week (can not be used with month, from or to)
+      -T, --tasks                                splits usage inside repository based on #task references.
+      -d, --max-commit-diff=[max-commit-diff]    maximum difference in minutes between commits counted to one session. Default: 120
+      -a, --first-commit-add=[first-commit-add]  how many minutes first commit of session should add to total. Default: 120
+      -m, --merge-request=[false|true]           Include merge requests into calculation.  Default: true
 
     Examples:
 
      - Estimate hours of project
 
-         $ git hours
+       $ timesheet
 
      - Estimate hours in repository where developers commit more seldom: they might have 4h(240min) pause between commits
 
-         $ git hours --max-commit-diff 240
+       $ timesheet --max-commit-diff 240
 
      - Estimate hours in repository where developer works 5 hours before first commit in day
 
-         $ git hours --first-commit-add 300
-
-     - Estimate hours work in repository since yesterday
-
-       $ git hours --since yesterday
-
-     - Estimate hours work in repository since 2015-01-31
-
-       $ git hours --since 2015-01-31
+       $ timesheet --first-commit-add 300
        
+    - Estimate hours betwen two dates
+
+       $ timesheet --from=2020-01-03 --to=2020-03-05
+       
+    - Estime hours for a certain month
+    
+       $ timesheet --month=1
+       
+    - Estime hours spent on each task
+    
+       $ timesheet --tasks   
+
     - Estimate hours work in repository on the "master" branch
     
-       $ git hours --branch master
-
-    For more details, visit https://github.com/kimmobrunfeldt/git-hours
+       $ timesheet --branch master
 
 
-## Install with Vagrant
+### Time range
 
-If you prefer to use vagrant, here's how:
+[git-csv-timesheet](.) will by default print out time spent this month in the current repository.
+You can override the time frame with `--week`, `--month`, `--year`, `--from` and ` --to` or `--all`.
+```bash
+# Prints current week
+timesheet --week  
 
-[Vagrant](https://docs.vagrantup.com/v2/getting-started/) can be used to automatically
-set up a disposable Virtual Machine with the required environment and install the
-program.
+# Prints week 36 in this year
+timesheet --week=36
 
+# Prints february of this year
+timesheet --month=2
+
+# Prints current year
+timesheet --year
+
+# Prints whole of 2019
+timesheet --year=2019
+
+# Prints between 3rd of Jan  -> 5th of Mar (YYYY-MM-DD)
+# This includes whole of 2020-01-03, but NOT 2020-03-05 
+timesheet --from=2020-01-03 --to=2020-03-05
+
+# Prints data for all time up to today
+timesheet --all  
 ```
-$ git clone https://github.com/kimmobrunfeldt/git-hours
-$ cd git-hours
-$ vagrant up && vagrant ssh
+
+## Config
+
+### .timesheetrc config
+
+By default, the command will check the current git repository. You can also summarize multiple repositories by specifying a config.
+
+```bash
+➜  git:(master) timesheet --week --config=~/.timesheetrc
+date;project;repository;hours
+2020-07-27;Personal blog;@tomfa/notes;3.5
+2020-07-27;Personal blog;@tomfa/notes-frontend;1
+2020-07-27;Client 1;@client/dashboard;3
+2020-07-28;Client 1;@client/app;8
+2020-07-28;Client 1;client/backend;2
+# etc
 ```
 
-And that's it, you can now test out git-hours. For example:
-
-```
-$ git clone https://github.com/twbs/bootstrap
-$ cd bootstrap
-$ git hours
+The config has the following structure: 
+```json
 {
-  "total": {
-    "hours": 6417,
-    "commits": 9779
-  }
+  "repositories": [
+    "/Users/tomfa/repos/git-csv-timesheet",    
+    {"project":  "Personal blog", "path": "/Users/tomfa/repos/notes"},
+    {"project":  "Personal blog", "path": "/Users/tomfa/repos/notes-backend"},
+    {"project":  "Client 1", "path": "/Users/tomfa/repos/app", "trackTasks":  true},
+    {"project":  "Client 1", "path": "/Users/tomfa/repos/backend", "trackTasks":  true, "countMerges":  false}
+  ],
+  "macCommitDiff": 120,
+  "firstCommitAdd": 60,
+  "countMerges": true,
+  "authors": ["me@companymail.com", "me@gmail.com"]  
 }
 ```
 
-Then when you are done playing around you can cleanly
-[remove](https://docs.vagrantup.com/v2/cli/destroy.html) the vm from your
-system by running:
+The config above will:
+- track commits by authors with emails "me@companymail.com" and "me@gmail.com". 
+- add 60 minutes before first commits (for a day)
+- "glue together" commits that are less than 2 hours between.
+- count merges as your commit (except for `/Users/tomfa/repos/backend`, where it's overriden)
+- count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/git-csv-timesheet`)
+- count 2 repos each for the two projects `Client 1"` and `Personal blog`.
+- for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.) 
 
-```
-$ exit
-$ vagrant destroy -f
+
+### Task tracking
+
+If you need to specify what you've worked on (_I'm sorry_), [git-csv-timesheet](.) can look for `#` in your commits to categorise work based on individual tasks.
+
+```bash
+> timesheet --week --config=~/.timesheetrc --tasks
+date;project;repository;task;hours
+2020-07-27;Personal blog;@tomfa/notes;#14;1.5
+2020-07-27;Personal blog;@tomfa/notes;#13;2.5
+2020-07-27;Personal blog;@tomfa/notes-frontend;#12;1
+2020-07-27;Client 1;@client/dashboard;#152;2
+2020-07-27;Client 1;@client/dashboard;;2
+2020-07-28;Client 1;@client/app;#81;4
+2020-07-28;Client 1;@client/app;#84;2
+2020-07-28;Client 1;@client/app;#86;1
+2020-07-28;Client 1;@client/app;;1
+2020-07-28;Client 1;@client/backend;#421;2
+# etc
 ```
 
-## Run with docker
+This requires that your commits contain a task reference, with git commits ala:
+```git
+Fix bug with login form
 
-Install [docker](http://www.docker.com/) and run the following command inside the git repo you want to analyze:
+#TASK-123
 ```
-docker run --rm -v $(pwd):/code khor/git-hours
-```
-It mounts the current directory (pwd) inside the docker container and runs `git hours` on it.
+
+_The commit above would add its time to the task `#TASK-123`. The script includes everything after the first `#`, up to a space or line shift._
+
+Commits without a task reference are added to a separate line where the task column is blank 
+
