@@ -1,29 +1,29 @@
 {
-  "name": "git-hours",
-  "version": "1.4.0",
-  "description": "Estimate time spent on a git repository",
+  "name": "git-csv-timesheet",
+  "version": "0.0.1",
+  "description": "Generate a CSV timesheet from your git repositories",
   "main": "./src/index.js",
   "bin": {
-    "git-hours": "./src/index.js"
+    "timesheet": "./src/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kimmobrunfeldt/git-hours.git"
+    "url": "https://github.com/tomfa/git-hours.git"
   },
   "keywords": [
     "git",
     "time",
     "spent",
-    "tracking",
-    "clock",
+    "csv",
+    "timesheet",
     "hours"
   ],
-  "author": "Kimmo Brunfeldt",
+  "author": "Tomas Fagerbekk",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kimmobrunfeldt/git-hours/issues"
+    "url": "https://github.com/tomfa/git-csv-timesheet/issues"
   },
-  "homepage": "https://github.com/kimmobrunfeldt/git-hours",
+  "homepage": "https://github.com/tomfa/git-csv-timesheet",
   "dependencies": {
     "bluebird": "^2.1.3",
     "commander": "^2.2.0",
