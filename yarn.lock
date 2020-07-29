@@ -2,10 +2,29 @@
 # yarn lockfile v1
 
 
-"@types/node@^14.0.27":
+"@types/lodash@^3.10.0":
+  version "3.10.3"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-3.10.3.tgz#aaddec6a3c93bf03b402db3acf5d4c77bce8bdff"
+  integrity sha512-b9zScBKmB/RJqETbxu3YRya61vJOik89/lR+NdxjZAFMDcMSjwX6IhQoP4terJkhsa9TE1C+l6XwxCkhhsaZXg==
+
+"@types/moment@^2.13.0":
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/@types/moment/-/moment-2.13.0.tgz#604ebd189bc3bc34a1548689404e61a2a4aac896"
+  integrity sha1-YE69GJvDvDShVIaJQE5hoqSqyJY=
+  dependencies:
+    moment "*"
+
+"@types/node@*", "@types/node@^14.0.27":
   version "14.0.27"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.27.tgz#a151873af5a5e851b51b3b065c9e63390a9e0eb1"
   integrity sha512-kVrqXhbclHNHGu9ztnAwSncIgJv/FaxmzXJvGXNdcCpV1b8u1/Mi6z6m0vwy0LzKeXFTPLH0NzwmoJ3fNCIq0g==
+
+"@types/nodegit@^0.24.13":
+  version "0.24.13"
+  resolved "https://registry.yarnpkg.com/@types/nodegit/-/nodegit-0.24.13.tgz#5bfb5db4f7c949527495a7ebd3ad18068a0f0ab1"
+  integrity sha512-EmrziVUjRvZSLmsUbpH/CCDyS8RJ0SaDQVVqZrq8avF1ePoIDBM2IaX/Y1N65SyVjkCd2IzaMJZpT10hAH+a0w==
+  dependencies:
+    "@types/node" "*"
 
 JSV@^4.0.x:
   version "4.0.2"
@@ -2106,7 +2125,7 @@ mocha@^2.3.3:
     supports-color "1.2.0"
     to-iso-string "0.0.2"
 
-moment@^2.10.6:
+moment@*, moment@^2.10.6:
   version "2.27.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.27.0.tgz#8bff4e3e26a236220dfe3e36de756b6ebaa0105d"
   integrity sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ==

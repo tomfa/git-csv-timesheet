@@ -1,15 +1,32 @@
 #!/usr/bin/env node
 
-var Promise = require('bluebird');
-var git = require('nodegit');
-var program = require('commander');
-var _ = require('lodash');
-var moment = require('moment');
-var fs = require('fs');
+import {Commit, Repository} from "nodegit";
 
-var DATE_FORMAT = 'YYYY-MM-DD';
+const bluebird = require('bluebird');
+const git = require('nodegit');
+const program = require('commander');
+const _ = require('lodash');
+const moment = require('moment');
+const fs = require('fs');
 
-var config = {
+const DATE_FORMAT = 'YYYY-MM-DD';
+
+type EmailAliases = {
+    [email: string]: string
+};
+type Config = {
+    maxCommitDiffInMinutes: number;
+    firstCommitAdditionInMinutes: number;
+    since: string | Date;
+    until: string | Date;
+    mergeRequest:boolean;
+    gitPath: string;
+    emailAliases: EmailAliases,
+    branch: string | null;
+}
+type RepoAuthorContribution = { name: string, hours: number, commits: number }
+
+let defaultConfig: Config = {
     // Maximum time diff between 2 subsequent commits in minutes which are
     // counted to be in the same coding "session"
     maxCommitDiffInMinutes: 2 * 60,
@@ -34,42 +51,33 @@ var config = {
     branch: null
 };
 
-function main() {
-    exitIfShallow();
-
-    parseArgs();
-    config = mergeDefaultsWithArgs(config);
+async function main() {
+    const commandLineArgs = parseArgs();
+    const config = {...defaultConfig, ...commandLineArgs}
     config.since = parseSinceDate(config.since);
     config.until = parseUntilDate(config.until);
 
-    // Poor man`s multiple args support
-    // https://github.com/tj/commander.js/issues/531
-    for (var i = 0; i < process.argv.length; i++) {
-        var k = process.argv[i];
-        var n = i <= process.argv.length - 1 ? process.argv[i + 1] : undefined;
-        if (k == "-e" || k == "--email") {
-            parseEmailAlias(n);
-        } else
-        if (k.startsWith("--email=")) {
-            n = k.substring(k.indexOf("=") + 1)
-            parseEmailAlias(n);
-        }
+    if (isShallowGitRepo(config.gitPath)) {
+        console.log("Cannot analyze shallow copies!");
+        console.log("Please run git fetch --unshallow before continuing!");
+        process.exit(1);
     }
 
-    getCommits(config.gitPath, config.branch).then(function(commits) {
-        var commitsByEmail = _.groupBy(commits, function(commit) {
-            var email = commit.author.email || 'unknown'
-            if (config.emailAliases !== undefined && config.emailAliases[email] !== undefined) {
+    const commits = await getCommits(config.gitPath, config.branch, config);
+
+        const commitsByEmail: {[email: string]: Commit} = _.groupBy(commits, function(commit) {
+            let email = commit.author.email || 'unknown'
+            if (config.emailAliases[email] !== undefined) {
                 email = config.emailAliases[email]
             }
             return email;
         });
 
-        var authorWorks = _.map(commitsByEmail, function(authorCommits, authorEmail) {
+        const authorWorks = _.map(commitsByEmail, function(authorCommits, authorEmail) {
             return {
                 email: authorEmail,
                 name: authorCommits[0].author.name,
-                hours: estimateHours(_.pluck(authorCommits, 'date')),
+                hours: estimateHours(_.pluck(authorCommits, 'date'), config),
                 commits: authorCommits.length
             };
         });
@@ -78,36 +86,28 @@ function main() {
         // in the same order as the keys were added. This is anyway just for
         // making the output easier to read, so it doesn't matter if it
         // isn't sorted in some cases.
-        var sortedWork = {};
+        const sortedWork : { [email: string]: RepoAuthorContribution } = { };
 
         _.each(_.sortBy(authorWorks, 'hours'), function(authorWork) {
             sortedWork[authorWork.email] = _.omit(authorWork, 'email');
         });
 
-        var totalHours = _.reduce(sortedWork, function(sum, authorWork) {
-            return sum + authorWork.hours;
-        }, 0);
+        const totalHours = Object.values(sortedWork).reduce((sum, authorWork) => sum + authorWork.hours, 0);
 
-        sortedWork.total = {
+        sortedWork['total'] = {
+            name: '',
             hours: totalHours,
             commits: commits.length
         };
 
         console.log(JSON.stringify(sortedWork, undefined, 2));
-    }).catch(function(e) {
-        console.error(e.stack);
-    });
 }
 
-function exitIfShallow() {
-    if (fs.existsSync(".git/shallow")) {
-        console.log("Cannot analyze shallow copies!");
-        console.log("Please run git fetch --unshallow before continuing!");
-        process.exit(1);
-    }
+function isShallowGitRepo(path: string): boolean {
+    return fs.existsSync(path + ".git/shallow")
 }
 
-function parseArgs() {
+function parseArgs(): Partial<Config> {
     function int(val) {
         return parseInt(val, 10);
     }
@@ -118,19 +118,19 @@ function parseArgs() {
         .option(
             '-d, --max-commit-diff [max-commit-diff]',
             'maximum difference in minutes between commits counted to one' +
-            ' session. Default: ' + config.maxCommitDiffInMinutes,
+            ' session. Default: ' + defaultConfig.maxCommitDiffInMinutes,
             int
         )
         .option(
             '-a, --first-commit-add [first-commit-add]',
             'how many minutes first commit of session should add to total.' +
-            ' Default: ' + config.firstCommitAdditionInMinutes,
+            ' Default: ' + defaultConfig.firstCommitAdditionInMinutes,
             int
         )
         .option(
             '-s, --since [since-certain-date]',
             'Analyze data since certain date.' +
-            ' [always|yesterday|today|lastweek|thisweek|yyyy-mm-dd] Default: ' + config.since,
+            ' [always|yesterday|today|lastweek|thisweek|yyyy-mm-dd] Default: ' + defaultConfig.since,
             String
         )
         .option(
@@ -142,24 +142,24 @@ function parseArgs() {
         .option(
             '-u, --until [until-certain-date]',
             'Analyze data until certain date.' +
-            ' [always|yesterday|today|lastweek|thisweek|yyyy-mm-dd] Default: ' + config.until,
+            ' [always|yesterday|today|lastweek|thisweek|yyyy-mm-dd] Default: ' + defaultConfig.until,
             String
         )
         .option(
             '-m, --merge-request [false|true]',
             'Include merge requests into calculation. ' +
-            ' Default: ' + config.mergeRequest,
+            ' Default: ' + defaultConfig.mergeRequest,
             String
         )
         .option(
             '-p, --path [git-repo]',
             'Git repository to analyze.' +
-            ' Default: ' + config.gitPath,
+            ' Default: ' + defaultConfig.gitPath,
             String
         )
         .option(
             '-b, --branch [branch-name]',
-            'Analyze only data on the specified branch. Default: ' + config.branch,
+            'Analyze only data on the specified branch. Default: ' + defaultConfig.branch,
             String
         );
 
@@ -197,9 +197,28 @@ function parseArgs() {
     });
 
     program.parse(process.argv);
+
+    const confArgs = {
+        maxCommitDiffInMinutes: program.maxCommitDiff,
+        firstCommitAdditionInMinutes: program.firstCommitAdd,
+        since: program.since,
+        until: program.until,
+        gitPath: program.path,
+        mergeRequest: program.mergeRequest === undefined ? program.mergeRequest !== "false" : undefined,
+        branch: program.branch,
+        emailAliases: parseEmailArg(process.argv)
+    };
+
+    for (let [key, value] of Object.entries(confArgs)) {
+        if (value === undefined) {
+            delete confArgs[key]
+        }
+    }
+
+    return confArgs
 }
 
-function parseInputDate(inputDate) {
+function parseInputDate(inputDate: string): Date | 'always' {
     switch (inputDate) {
         case 'today':
             return moment().startOf('day');
@@ -225,49 +244,49 @@ function parseUntilDate(until) {
     return parseInputDate(until);
 }
 
-function parseEmailAlias(alias) {
-    if (alias.indexOf("=") > 0) {
-        var email = alias.substring(0, alias.indexOf("=")).trim();
-        var alias = alias.substring(alias.indexOf("=") + 1).trim();
-        // console.warn("Adding alias " + email + " -> " + alias);
-        if (config.emailAliases === undefined) {
-            config.emailAliases = {}
+function parseEmailArg(argv: string[]): EmailAliases {
+    // Poor man`s multiple args support
+    // https://github.com/tj/commander.js/issues/531
+    const aliases = {};
+    const addToAliases = (aliasInput: string): void => {
+        if (aliasInput.indexOf("=") > 0) {
+            const email = aliasInput.substring(0, aliasInput.indexOf("=")).trim();
+            const alias = aliasInput.substring(aliasInput.indexOf("=") + 1).trim();
+            aliases[email] = alias;
+            return;
         }
-        config.emailAliases[email] = alias
-    } else {
-        console.error("ERROR: Invalid alias: " + alias);
-    }
-}
-
-function mergeDefaultsWithArgs(conf) {
-    return {
-        range: program.range,
-        maxCommitDiffInMinutes: program.maxCommitDiff || conf.maxCommitDiffInMinutes,
-        firstCommitAdditionInMinutes: program.firstCommitAdd || conf.firstCommitAdditionInMinutes,
-        since: program.since || conf.since,
-        until: program.until || conf.until,
-        gitPath: program.path || conf.gitPath,
-        mergeRequest: program.mergeRequest !== undefined ? (program.mergeRequest == "true") :
-            conf.mergeRequest,
-        branch: program.branch || conf.branch
+        console.error("ERROR: Invalid alias: " + aliasInput);
     };
+    for (let i = 0; i < argv.length; i++) {
+        const k = argv[i];
+        let n = i <= argv.length - 1 ? argv[i + 1] : undefined;
+        if (k == "-e" || k == "--email") {
+            addToAliases(n)
+        } else
+        if (k.startsWith("--email=")) {
+            n = k.substring(k.indexOf("=") + 1)
+            addToAliases(n)
+        }
+    }
+
+    return aliases
 }
 
 // Estimates spent working hours based on commit dates
-function estimateHours(dates) {
+function estimateHours(dates: Date[], config: Config): number {
     if (dates.length < 2) {
         return 0;
     }
 
     // Oldest commit first, newest last
-    var sortedDates = dates.sort(function(a, b) {
-        return a - b;
+    const sortedDates = dates.sort(function(a, b) {
+        return a.getTime() - b.getTime();
     });
-    var allButLast = _.take(sortedDates, sortedDates.length - 1);
+    const allButLast = _.take(sortedDates, sortedDates.length - 1);
 
-    var totalHours = _.reduce(allButLast, function(hours, date, index) {
-        var nextDate = sortedDates[index + 1];
-        var diffInMinutes = (nextDate - date) / 1000 / 60;
+    const totalHours = _.reduce(allButLast, function(hours, date, index) {
+        const nextDate = sortedDates[index + 1];
+        const diffInMinutes = (nextDate.getTime() - date.getTime()) / 1000 / 60;
 
         // Check if commits are counted to be in same coding session
         if (diffInMinutes < config.maxCommitDiffInMinutes) {
@@ -281,74 +300,61 @@ function estimateHours(dates) {
 
     }, 0);
 
+    // TODO: Consider swiching to Number.parseFloat(a.toFixed(2))
     return Math.round(totalHours);
 }
 
 // Promisify nodegit's API of getting all commits in repository
-function getCommits(gitPath, branch) {
-    return git.Repository.open(gitPath)
-    .then(function(repo) {
-        var allReferences = getAllReferences(repo);
+async function getCommits(gitPath: string, branch: string | null, config: Config): Promise<Commit[]> {
+    const repo: Repository = await git.Repository.open(gitPath)
+    const allReferences = await getAllReferences(repo);
 
-        if (branch) {
-            filterPromise = Promise.filter(allReferences, function(reference) {
-                return (reference == ('refs/heads/' + branch));
-            });
-        }
-        else {
-            filterPromise = Promise.filter(allReferences, function(reference) {
-                return reference.match(/refs\/heads\/.*/);
-            });
-        }
+    let references;
+    if (branch) {
+        references = allReferences.filter(r => r === 'refs/heads/' + branch);
+    }
+    else {
+        references = allReferences.filter(r => r.match(/refs\/heads\/.*/));
+    }
 
-        return filterPromise.map(function(branchName) {
-            return getBranchLatestCommit(repo, branchName);
-        })
-        .map(function(branchLatestCommit) {
-            return getBranchCommits(branchLatestCommit);
-        })
-        .reduce(function(allCommits, branchCommits) {
-            _.each(branchCommits, function(commit) {
-                allCommits.push(commit);
-            });
+    const allCommits = [];
+    const latestBranchCommits: Commit[] =  await Promise.all(references.map(branchName => getBranchLatestCommit(repo, branchName)));
+    for (const latestCommit of latestBranchCommits) {
+        // TODO: This is a sync loop with an parallelizable call. Make Promise?
+        const branchCommits = await getBranchCommits(latestCommit, config);
+        branchCommits.forEach(c => allCommits.push(c));
+    }
 
-            return allCommits;
-        }, [])
-        .then(function(commits) {
-            // Multiple branches might share commits, so take unique
-            var uniqueCommits = _.uniq(commits, function(item, key, a) {
-                return item.sha;
-            });
-
-            return uniqueCommits.filter(function(commit) {
-                // Exclude all commits starting with "Merge ..."
-                if (!config.mergeRequest && commit.message.startsWith("Merge ")) {
-                    return false;
-                } else {
-                    return true;
-                }
-            });
+        // Multiple branches might share commits, so take unique
+        const uniqueCommits = _.uniq(allCommits, function(item, key, a) {
+            return item.sha;
         });
-    });
+
+        if (config.mergeRequest) {
+            return uniqueCommits;
+        }
+
+        const isNotMergeCommit = commit => !commit.message.startsWith("Merge ");
+        return uniqueCommits.filter(isNotMergeCommit);
 }
 
-function getAllReferences(repo) {
+function getAllReferences(repo: Repository): Promise<string[]> {
     return repo.getReferenceNames(git.Reference.TYPE.ALL);
 }
 
-function getBranchLatestCommit(repo, branchName) {
-    return repo.getBranch(branchName).then(function(reference) {
+async function getBranchLatestCommit(repo: Repository, branchName: string): Promise<Commit> {
+    return await repo.getBranch(branchName).then(function(reference) {
         return repo.getBranchCommit(reference.name());
     });
 }
 
-function getBranchCommits(branchLatestCommit) {
-    return new Promise(function(resolve, reject) {
-        var history = branchLatestCommit.history();
-        var commits = [];
+async function getBranchCommits(branchLatestCommit: Commit, config: Config): Promise<Commit[]> {
+    return new bluebird(function(resolve, reject) {
+        const history = branchLatestCommit.history();
+        const commits = [];
 
         history.on('commit', function(commit) {
-            var author = null;
+            let author = null;
             if (!_.isNull(commit.author())) {
                 author = {
                     name: commit.author().name(),
@@ -356,23 +362,23 @@ function getBranchCommits(branchLatestCommit) {
                 };
             }
 
-            var commitData = {
+            const commitData = {
                 sha: commit.sha(),
                 date: commit.date(),
                 message: commit.message(),
                 author: author
             };
 
-            var isValidSince = true;
-            var sinceAlways = config.since === 'always' || !config.since;
+            let isValidSince = true;
+            const sinceAlways = config.since === 'always' || !config.since;
             if (sinceAlways || moment(commitData.date.toISOString()).isAfter(config.since)) {
                 isValidSince = true;
             } else {
                 isValidSince = false;
             }
 
-            var isValidUntil = true;
-            var untilAlways = config.until === 'always' || !config.until;
+            let isValidUntil = true;
+            const untilAlways = config.until === 'always' || !config.until;
             if (untilAlways || moment(commitData.date.toISOString()).isBefore(config.until)) {
                 isValidUntil = true;
             } else {
@@ -397,4 +403,4 @@ function getBranchCommits(branchLatestCommit) {
     });
 }
 
-main();
+main()
