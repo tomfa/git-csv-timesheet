@@ -3,9 +3,9 @@ var exec = require('child_process').exec;
 
 var totalHoursCount;
 
-describe('git-hours', function() {
-    it('should output json', function(done) {
-        exec('node ./src/index.js', function(err, stdout, stderr) {
+describe('git-hours', function () {
+    it('should output json', function (done) {
+        exec('node ./src/index.js', function (err, stdout, stderr) {
             if (err !== null) {
                 throw new Error(stderr);
             }
@@ -19,8 +19,12 @@ describe('git-hours', function() {
         });
     });
 
-    it('Should analyse since today', function(done) {
-        exec('node ./src/index.js --since today', function(err, stdout, stderr) {
+    it('Should analyse since today', function (done) {
+        exec('node ./src/index.js --since today', function (
+            err,
+            stdout,
+            stderr,
+        ) {
             assert.ifError(err);
             var work = JSON.parse(stdout);
             assert.strictEqual(typeof work.total.hours, 'number');
@@ -28,8 +32,12 @@ describe('git-hours', function() {
         });
     });
 
-    it('Should analyse since yesterday', function(done) {
-        exec('node ./src/index.js --since yesterday', function(err, stdout, stderr) {
+    it('Should analyse since yesterday', function (done) {
+        exec('node ./src/index.js --since yesterday', function (
+            err,
+            stdout,
+            stderr,
+        ) {
             assert.ifError(err);
             var work = JSON.parse(stdout);
             assert.strictEqual(typeof work.total.hours, 'number');
@@ -37,8 +45,12 @@ describe('git-hours', function() {
         });
     });
 
-    it('Should analyse since last week', function(done) {
-        exec('node ./src/index.js --since lastweek', function(err, stdout, stderr) {
+    it('Should analyse since last week', function (done) {
+        exec('node ./src/index.js --since lastweek', function (
+            err,
+            stdout,
+            stderr,
+        ) {
             assert.ifError(err);
             var work = JSON.parse(stdout);
             assert.strictEqual(typeof work.total.hours, 'number');
@@ -46,8 +58,12 @@ describe('git-hours', function() {
         });
     });
 
-    it('Should analyse since a specific date', function(done) {
-        exec('node ./src/index.js --since 2015-01-01', function(err, stdout, stderr) {
+    it('Should analyse since a specific date', function (done) {
+        exec('node ./src/index.js --since 2015-01-01', function (
+            err,
+            stdout,
+            stderr,
+        ) {
             assert.ifError(err);
             var work = JSON.parse(stdout);
             assert.notEqual(work.total.hours, 0);
@@ -55,8 +71,12 @@ describe('git-hours', function() {
         });
     });
 
-    it('Should analyse as without param', function(done) {
-        exec('node ./src/index.js --since always', function(err, stdout, stderr) {
+    it('Should analyse as without param', function (done) {
+        exec('node ./src/index.js --since always', function (
+            err,
+            stdout,
+            stderr,
+        ) {
             assert.ifError(err);
             var work = JSON.parse(stdout);
             assert.equal(work.total.hours, totalHoursCount);

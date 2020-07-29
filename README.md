@@ -1,39 +1,38 @@
 # git-csv-timesheet
 
-> Logging hours? No thanks. Let git-csv-timesheet estimate time spent and print out a csv. 
-
+> Logging hours? No thanks. Let git-csv-timesheet estimate time spent and print out a csv.
 
 ## Install
+
 ```
 yarn add global git-csv-timesheet
 
-# or with npm 
+# or with npm
 
 npm install -g git-csv-timesheet
 ```
 
-
 ## Basic usage
 
 ```bash
-$ timesheet  
+$ timesheet
 date;hours
 2020-07-01;7.5
 2020-07-02;8
 2020-07-03;10
 
 # Write to file
-$ timesheet > report.csv 
+$ timesheet > report.csv
 ```
 
-[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) will by default print out time spent this month in the current repository. 
+[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) will by default print out time spent this month in the current repository.
 
 - For more advanced use, see [Advanced usage](#advanced-usage).
-- To override month, print for a week, year or  specified date range, see [time range options](#time-range).
+- To override month, print for a week, year or specified date range, see [time range options](#time-range).
 - To gather data from multiple repositories at once, see [timesheetrc config](#timesheetrc-config).
 - To gather data on individual tasks, see [task tracking](#task-tracking).
 
-[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) guesses the time spent on individual repositories based on 
+[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) guesses the time spent on individual repositories based on
 timestamps of git commits. Read more about [how it works](#how-it-works) and [configuring assumptions](#advanced-usage).
 
 **The generated output might not be accurate enough to use for billing.**
@@ -46,34 +45,34 @@ The algorithm for estimating hours is quite simple. For each author in the commi
 
 ![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step0.png)
 
-*Go through all commits and compare the difference between
-them in time.*
+_Go through all commits and compare the difference between
+them in time._
 
 <br><br><br>
 
 ![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step1.png)
 
-*If the difference is smaller or equal then a given threshold, group the commits
-to a same coding session.*
+_If the difference is smaller or equal then a given threshold, group the commits
+to a same coding session._
 
 <br><br><br>
 
 ![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step2.png)
 
-*If the difference is bigger than a given threshold, the coding session is finished.*
+_If the difference is bigger than a given threshold, the coding session is finished._
 
 <br><br><br>
 
 ![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step3.png)
 
-*To compensate the first commit whose work is unknown, we add extra hours to the coding session.*
+_To compensate the first commit whose work is unknown, we add extra hours to the coding session._
 
 <br><br><br>
 
 ![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step4.png)
 
-*Continue until we have determined all coding sessions and sum the hours
-made by individual authors.*
+_Continue until we have determined all coding sessions and sum the hours
+made by individual authors._
 
 <br>
 
@@ -112,31 +111,31 @@ The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobru
      - Estimate hours in repository where developer works 5 hours before first commit in day
 
        $ timesheet --first-commit-add 300
-       
+
     - Estimate hours betwen two dates
 
        $ timesheet --from=2020-01-03 --to=2020-03-05
-       
+
     - Estime hours for a certain month
-    
+
        $ timesheet --month=1
-       
+
     - Estime hours spent on each task
-    
-       $ timesheet --tasks   
+
+       $ timesheet --tasks
 
     - Estimate hours work in repository on the "master" branch
-    
-       $ timesheet --branch master
 
+       $ timesheet --branch master
 
 ### Time range
 
 [git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) will by default print out time spent this month in the current repository.
-You can override the time frame with `--week`, `--month`, `--year`, `--from` and ` --to` or `--all`.
+You can override the time frame with `--week`, `--month`, `--year`, `--from` and `--to` or `--all`.
+
 ```bash
 # Prints current week
-timesheet --week  
+timesheet --week
 
 # Prints week 36 in this year
 timesheet --week=36
@@ -151,11 +150,11 @@ timesheet --year
 timesheet --year=2019
 
 # Prints between 3rd of Jan  -> 5th of Mar (YYYY-MM-DD)
-# This includes whole of 2020-01-03, but NOT 2020-03-05 
+# This includes whole of 2020-01-03, but NOT 2020-03-05
 timesheet --from=2020-01-03 --to=2020-03-05
 
 # Prints data for all time up to today
-timesheet --all  
+timesheet --all
 ```
 
 ## Config
@@ -175,32 +174,42 @@ date;project;repository;hours
 # etc
 ```
 
-The config has the following structure: 
+The config has the following structure:
+
 ```json
 {
   "repositories": [
-    "/Users/tomfa/repos/git-csv-timesheet",    
-    {"project":  "Personal blog", "path": "/Users/tomfa/repos/notes"},
-    {"project":  "Personal blog", "path": "/Users/tomfa/repos/notes-backend"},
-    {"project":  "Client 1", "path": "/Users/tomfa/repos/app", "trackTasks":  true},
-    {"project":  "Client 1", "path": "/Users/tomfa/repos/backend", "trackTasks":  true, "countMerges":  false}
+    "/Users/tomfa/repos/git-csv-timesheet",
+    { "project": "Personal blog", "path": "/Users/tomfa/repos/notes" },
+    { "project": "Personal blog", "path": "/Users/tomfa/repos/notes-backend" },
+    {
+      "project": "Client 1",
+      "path": "/Users/tomfa/repos/app",
+      "trackTasks": true
+    },
+    {
+      "project": "Client 1",
+      "path": "/Users/tomfa/repos/backend",
+      "trackTasks": true,
+      "countMerges": false
+    }
   ],
   "macCommitDiff": 120,
   "firstCommitAdd": 60,
   "countMerges": true,
-  "authors": ["me@companymail.com", "me@gmail.com"]  
+  "authors": ["me@companymail.com", "me@gmail.com"]
 }
 ```
 
 The config above will:
-- track commits by authors with emails "me@companymail.com" and "me@gmail.com". 
+
+- track commits by authors with emails "me@companymail.com" and "me@gmail.com".
 - add 60 minutes before first commits (for a day)
 - "glue together" commits that are less than 2 hours between.
 - count merges as your commit (except for `/Users/tomfa/repos/backend`, where it's overriden)
 - count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/git-csv-timesheet`)
 - count 2 repos each for the two projects `Client 1"` and `Personal blog`.
-- for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.) 
-
+- for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
 
 ### Task tracking
 
@@ -223,6 +232,7 @@ date;project;repository;task;hours
 ```
 
 This requires that your commits contain a task reference, with git commits ala:
+
 ```git
 Fix bug with login form
 
@@ -231,5 +241,4 @@ Fix bug with login form
 
 _The commit above would add its time to the task `#TASK-123`. The script includes everything after the first `#`, up to a space or line shift._
 
-Commits without a task reference are added to a separate line where the task column is blank 
-
+Commits without a task reference are added to a separate line where the task column is blank

@@ -8,7 +8,7 @@ updated.
 
 ## Get started with development
 
-* [Install local environment](#install-environment).
+- [Install local environment](#install-environment).
 
 ## General project stuff
 
@@ -25,7 +25,6 @@ All versions are pushed as git tags.
 Install tools needed for development:
 
     npm install
-
 
 ## Test
 
