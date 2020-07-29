@@ -26,15 +26,15 @@ date;hours
 $ timesheet > report.csv 
 ```
 
-[git-csv-timesheet](.) will by default print out time spent this month in the current repository. 
+[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) will by default print out time spent this month in the current repository. 
 
 - For more advanced use, see [Advanced usage](#advanced-usage).
 - To override month, print for a week, year or  specified date range, see [time range options](#time-range).
 - To gather data from multiple repositories at once, see [timesheetrc config](#timesheetrc-config).
-- To gather data on individual tasks, see [individual tasks](#task-tracking).
+- To gather data on individual tasks, see [task tracking](#task-tracking).
 
-[git-csv-timesheet](.) guesses the time spent on individual repositories based on 
-timestamps of git commits. Read more about [how it works](#how_it_works) and [configuring assumptions](#advanced-usage).
+[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) guesses the time spent on individual repositories based on 
+timestamps of git commits. Read more about [how it works](#how-it-works) and [configuring assumptions](#advanced-usage).
 
 **The generated output might not be accurate enough to use for billing.**
 
@@ -44,33 +44,33 @@ The algorithm for estimating hours is quite simple. For each author in the commi
 
 <br><br>
 
-![](docs/step0.png)
+![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step0.png)
 
 *Go through all commits and compare the difference between
 them in time.*
 
 <br><br><br>
 
-![](docs/step1.png)
+![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step1.png)
 
 *If the difference is smaller or equal then a given threshold, group the commits
 to a same coding session.*
 
 <br><br><br>
 
-![](docs/step2.png)
+![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step2.png)
 
 *If the difference is bigger than a given threshold, the coding session is finished.*
 
 <br><br><br>
 
-![](docs/step3.png)
+![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step3.png)
 
 *To compensate the first commit whose work is unknown, we add extra hours to the coding session.*
 
 <br><br><br>
 
-![](docs/step4.png)
+![](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/step4.png)
 
 *Continue until we have determined all coding sessions and sum the hours
 made by individual authors.*
@@ -132,7 +132,7 @@ The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobru
 
 ### Time range
 
-[git-csv-timesheet](.) will by default print out time spent this month in the current repository.
+[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) will by default print out time spent this month in the current repository.
 You can override the time frame with `--week`, `--month`, `--year`, `--from` and ` --to` or `--all`.
 ```bash
 # Prints current week
@@ -204,7 +204,7 @@ The config above will:
 
 ### Task tracking
 
-If you need to specify what you've worked on (_I'm sorry_), [git-csv-timesheet](.) can look for `#` in your commits to categorise work based on individual tasks.
+If you need to specify what you've worked on (_I'm sorry_), [git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) can look for `#` in your commits to categorise work based on individual tasks.
 
 ```bash
 > timesheet --week --config=~/.timesheetrc --tasks
