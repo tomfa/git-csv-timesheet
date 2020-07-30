@@ -1,5 +1,4 @@
 import { Commit, Repository } from 'nodegit';
-const bluebird = require('bluebird');
 const git = require('nodegit');
 const _ = require('lodash');
 const moment = require('moment');
@@ -68,7 +67,7 @@ export async function getBranchCommits(
   branchLatestCommit: Commit,
   config: Config,
 ): Promise<Commit[]> {
-  return new bluebird(function (resolve, reject) {
+  return new Promise(function (resolve, reject) {
     const history = branchLatestCommit.history();
     const commits = [];
 
