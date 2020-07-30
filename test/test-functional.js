@@ -5,7 +5,7 @@ var totalHoursCount;
 
 describe('git-hours', function () {
     it('should output json', function (done) {
-        exec('node ./src/index.js', function (err, stdout, stderr) {
+        exec('node ./dist/bin/timesheet.js', function (err, stdout, stderr) {
             if (err !== null) {
                 throw new Error(stderr);
             }
@@ -20,7 +20,7 @@ describe('git-hours', function () {
     });
 
     it('Should analyse since today', function (done) {
-        exec('node ./src/index.js --since today', function (
+        exec('node ./dist/bin/timesheet.js --since today', function (
             err,
             stdout,
             stderr,
@@ -33,7 +33,7 @@ describe('git-hours', function () {
     });
 
     it('Should analyse since yesterday', function (done) {
-        exec('node ./src/index.js --since yesterday', function (
+        exec('node ./dist/bin/timesheet.js --since yesterday', function (
             err,
             stdout,
             stderr,
@@ -46,7 +46,7 @@ describe('git-hours', function () {
     });
 
     it('Should analyse since last week', function (done) {
-        exec('node ./src/index.js --since lastweek', function (
+        exec('node ./dist/bin/timesheet.js --since lastweek', function (
             err,
             stdout,
             stderr,
@@ -59,7 +59,7 @@ describe('git-hours', function () {
     });
 
     it('Should analyse since a specific date', function (done) {
-        exec('node ./src/index.js --since 2015-01-01', function (
+        exec('node ./dist/bin/timesheet.js --since 2015-01-01', function (
             err,
             stdout,
             stderr,
@@ -72,7 +72,7 @@ describe('git-hours', function () {
     });
 
     it('Should analyse as without param', function (done) {
-        exec('node ./src/index.js --since always', function (
+        exec('node ./dist/bin/timesheet.js --since always', function (
             err,
             stdout,
             stderr,
