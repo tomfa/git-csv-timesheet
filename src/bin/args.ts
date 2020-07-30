@@ -1,5 +1,5 @@
-import { Config, EmailAliases } from './types';
-import { defaultConfig } from './config';
+import { Config, EmailAliases } from '../types';
+import { defaultConfig } from '../config';
 
 const program = require('commander');
 
@@ -9,7 +9,7 @@ export function parseCommandLineArgs(): Partial<Config> {
   }
 
   program
-    .version(require('../package.json').version)
+    .version(require('../../package.json').version)
     .usage('[options]')
     .option(
       '-d, --max-commit-diff [max-commit-diff]',

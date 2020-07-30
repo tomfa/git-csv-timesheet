@@ -4,7 +4,7 @@
   "description": "Generate a CSV timesheet from your git repositories",
   "main": "./dist/index.js",
   "bin": {
-    "timesheet": "./dist/index.js"
+    "timesheet": "./dist/bin/timesheet.js"
   },
   "repository": {
     "type": "git",
@@ -45,7 +45,7 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "timesheet": "yarn compile && node ./dist/index.js",
+    "timesheet": "yarn compile && node ./dist/bin/timesheet.js",
     "test": "mocha",
     "eslint": "eslint --ext .js ./src ./test",
     "jscs": "jscs ./src ./test",
