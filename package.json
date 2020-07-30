@@ -1,6 +1,6 @@
 {
   "name": "git-csv-timesheet",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Generate a CSV timesheet from your git repositories",
   "main": "./dist/index.js",
   "bin": {
