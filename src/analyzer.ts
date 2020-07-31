@@ -11,10 +11,14 @@ export async function analyzeTimeSpentForRepository(config: Config) {
     process.exit(1);
   }
 
-  const commits = await git.getCommits(config.gitPath, config.branch, config);
+  const allCommits = await git.getCommits(
+    config.gitPath,
+    config.branch,
+    config,
+  );
 
   const commitsByEmail: { [email: string]: Commit[] } = _.groupBy(
-    commits,
+    allCommits,
     function (commit) {
       let email: string = commit.author.email || 'unknown';
       if (config.emailAliases[email] !== undefined) {
@@ -23,6 +27,13 @@ export async function analyzeTimeSpentForRepository(config: Config) {
       return email;
     },
   );
+  if (config.authors.length > 0) {
+    Object.keys(commitsByEmail).forEach((email) => {
+      if (!config.authors.includes(email)) {
+        delete commitsByEmail[email];
+      }
+    });
+  }
 
   const authorWorks = _.map(commitsByEmail, function (
     authorCommits,
@@ -51,11 +62,17 @@ export async function analyzeTimeSpentForRepository(config: Config) {
     0,
   );
 
-  sortedWork['total'] = {
-    name: '',
-    hours: totalHours,
-    commits: commits.length,
-  };
+  if (config.authors.length !== 1) {
+    const numberOfCommits = Object.values(commitsByEmail).reduce(
+      (count, commits) => count + commits.length,
+      0,
+    );
+    sortedWork['total'] = {
+      name: '',
+      hours: totalHours,
+      commits: numberOfCommits,
+    };
+  }
   return sortedWork;
 }
 

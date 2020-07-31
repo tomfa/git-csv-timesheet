@@ -30,6 +30,7 @@ export const defaultConfig: Config = {
     'linus@torvalds.com': 'linus@linux.com',
   },
   branch: null,
+  authors: []
 };
 
 function parseInputDate(inputDate: string | Date): Date | 'always' {

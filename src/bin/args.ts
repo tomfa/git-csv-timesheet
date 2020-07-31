@@ -61,6 +61,14 @@ export function parseCommandLineArgs(): Partial<Config> {
       'Analyze only data on the specified branch. Default: ' +
         defaultConfig.branch,
       String,
+    )
+    .option(
+      '-A, --authors [email@gmail.com,email@example.com]',
+      'Only care about commits from these emails. Default: ' +
+        (defaultConfig.authors.length > 0
+          ? defaultConfig.authors.join(',')
+          : 'all'),
+      String,
     );
 
   program.on('--help', function () {
@@ -106,6 +114,7 @@ export function parseCommandLineArgs(): Partial<Config> {
 
   program.parse(process.argv);
 
+  const authors: string[] = parseAuthorsArg(program.authors)
   const confArgs: Config = {
     maxCommitDiffInMinutes: program.maxCommitDiff,
     firstCommitAdditionInMinutes: program.firstCommitAdd,
@@ -118,6 +127,7 @@ export function parseCommandLineArgs(): Partial<Config> {
         : undefined,
     branch: program.branch,
     emailAliases: parseEmailArg(process.argv),
+    authors
   };
 
   for (let [key, value] of Object.entries(confArgs)) {
@@ -154,4 +164,14 @@ function parseEmailArg(argv: string[]): EmailAliases {
   }
 
   return aliases;
+}
+
+function parseAuthorsArg(authorArg: string | string[]): string[] {
+  if (authorArg instanceof Array) {
+    return authorArg;
+  }
+  if (!authorArg) {
+    return []
+  }
+  return authorArg.split(',')
 }

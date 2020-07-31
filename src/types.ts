@@ -10,6 +10,7 @@ export type Config = {
   until: string | Date;
   countMerges: boolean;
   gitPath: string;
+  authors: Array<string>;
   emailAliases: EmailAliases;
   branch: string | null;
 };
@@ -27,5 +28,6 @@ export type HomeDirectoryConfig = {
   countMerges: boolean;
   emailAliases: EmailAliases;
   branch: string | null;
+  authors: Array<string>;
   repositories: Array<string | RepositoryConfig>;
 }
