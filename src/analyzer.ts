@@ -1,4 +1,5 @@
 import * as git from './git';
+import logger from './logger';
 const _ = require('lodash');
 
 import {
@@ -13,7 +14,6 @@ import {
 export async function getCommitSummaries(
   config: Config,
 ): Promise<{ [email: string]: CommitSummary }> {
-
   const { gitPaths, branch, countMerges, since, until } = config;
   const allCommits = await git.getCommits({
     gitPaths,
@@ -93,7 +93,14 @@ export function getUserContribution({
   allButLast.forEach((commit) => {
     let diffInMinutes =
       lastTimeStamp && getDiffInMinutes(commit.date, lastTimeStamp);
+    lastTimeStamp = commit.date;
     if (diffInMinutes === null || diffInMinutes > maxCommitDiffInMinutes) {
+      const { date, time } = getDateInfo(lastTimeStamp);
+      const pauseLength = Math.round(diffInMinutes);
+      logger.debug(
+        `${pauseLength} minutes diff until ${date} ${time}`,
+        `– session starts.`,
+      );
       diffInMinutes = firstCommitAdditionInMinutes;
     }
     addCommitData(diffInMinutes, commit.repo);
@@ -154,5 +161,9 @@ export async function analyzeTimeSpent(
 const oldestLastSorter = (a: Commit, b: Commit) =>
   a.date.getTime() - b.date.getTime();
 const getDiffInMinutes = (a: Date, b: Date) => {
-  return Math.abs(a.getTime() - b.getTime() / 1000 / 60);
+  return Math.abs(a.getTime() - b.getTime()) / 1000 / 60;
 };
+const getDateInfo = (d: Date): { date: string; time: string } => ({
+  date: d.toISOString().substr(0, 10),
+  time: d.toISOString().substr(11, 5),
+});
