@@ -1,8 +1,9 @@
 export type EmailAliases = {
   [email: string]: string;
 };
-export type RepoAuthorContribution = { name: string; hours: number; commits: number };
+export type RepoAuthorContribution = { hours: number; commits: number };
 
+export type CommitSummary = { timestamps: Date[] }
 export type RepoWorkSummary = { [email: string]: RepoAuthorContribution }
 
 export type Config = {

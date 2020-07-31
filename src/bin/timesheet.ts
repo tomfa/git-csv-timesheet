@@ -5,9 +5,14 @@ import { parseCommandLineArgs } from "./args";
 import { analyzeTimeSpentForRepository } from '../analyzer';
 import { printAsCSV } from '../print';
 
-const commandLineArgs = parseCommandLineArgs();
-const config = getConfig(commandLineArgs);
 
-analyzeTimeSpentForRepository(config).then((work) =>
-  printAsCSV(work)
-);
+const printReport = () => {
+  const commandLineArgs = parseCommandLineArgs();
+  const config = getConfig(commandLineArgs);
+  analyzeTimeSpentForRepository(config).then((work) =>
+    printAsCSV(work)
+  );
+}
+
+printReport();
+

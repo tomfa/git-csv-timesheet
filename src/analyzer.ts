@@ -2,9 +2,16 @@ import * as git from './git';
 import { Commit } from 'nodegit';
 const _ = require('lodash');
 
-import { Config, RepoAuthorContribution, RepoWorkSummary } from './types';
+import {
+  CommitSummary,
+  Config,
+  RepoAuthorContribution,
+  RepoWorkSummary,
+} from './types';
 
-export async function analyzeTimeSpentForRepository(config: Config): Promise<RepoWorkSummary> {
+export async function getCommitTimestamps(
+  config: Config,
+): Promise<{ [email: string]: CommitSummary }> {
   if (git.isShallowGitRepo(config.gitPath)) {
     console.log('Cannot analyze shallow copies!');
     console.log('Please run git fetch --unshallow before continuing!');
@@ -34,16 +41,28 @@ export async function analyzeTimeSpentForRepository(config: Config): Promise<Rep
       }
     });
   }
+  return Object.entries(commitsByEmail).reduce(
+    (commitSummary, [email, commits]) => {
+      commitSummary[email] = { timestamps: commits.map((c) => c.date) };
+      return commitSummary;
+    },
+    {},
+  );
+}
 
-  const authorWorks = _.map(commitsByEmail, function (
-    authorCommits,
+export async function analyzeTimeSpentForRepository(
+  config: Config,
+): Promise<RepoWorkSummary> {
+  const commitSummaries = await getCommitTimestamps(config);
+
+  const authorWorks = _.map(commitSummaries, function (
+    summary,
     authorEmail,
   ) {
     return {
       email: authorEmail,
-      name: authorCommits[0].author.name,
-      hours: estimateHours(_.pluck(authorCommits, 'date'), config),
-      commits: authorCommits.length,
+      hours: estimateHours(summary.timestamps, config),
+      commits: summary.timestamps.length,
     };
   });
 
@@ -57,18 +76,17 @@ export async function analyzeTimeSpentForRepository(config: Config): Promise<Rep
     sortedWork[authorWork.email] = _.omit(authorWork, 'email');
   });
 
-  const totalHours = Object.values(sortedWork).reduce(
-    (sum, authorWork) => sum + authorWork.hours,
-    0,
-  );
-
   if (config.authors.length !== 1) {
-    const numberOfCommits = Object.values(commitsByEmail).reduce(
-      (count, commits) => count + commits.length,
+    const totalHours = Object.values(sortedWork).reduce(
+      (sum, authorWork) => sum + authorWork.hours,
+      0,
+    );
+
+    const numberOfCommits = Object.values(commitSummaries).reduce(
+      (count, commits) => count + commits.timestamps.length,
       0,
     );
     sortedWork['total'] = {
-      name: '',
       hours: totalHours,
       commits: numberOfCommits,
     };
