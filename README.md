@@ -183,9 +183,9 @@ The config has the following structure:
 ```json
 {
   "repositories": [
-    "/Users/tomfa/repos/git-csv-timesheet",
     { "project": "Personal blog", "path": "/Users/tomfa/repos/notes" },
     { "project": "Personal blog", "path": "/Users/tomfa/repos/notes-backend" },
+    "/Users/tomfa/repos/random-project",
     {
       "project": "Client 1",
       "path": "/Users/tomfa/repos/app",
@@ -198,20 +198,25 @@ The config has the following structure:
       "countMerges": false
     }
   ],
-  "macCommitDiff": 120,
-  "firstCommitAdd": 60,
+  "maxCommitDiffInMinutes": 120,
+  "firstCommitAdditionInMinutes": 60,
   "countMerges": true,
-  "authors": ["me@companymail.com", "me@gmail.com"]
+  "authors": ["me@companymail.com"],
+  "emailAliases": {
+    "me@gmail.com": "me@companymail.com",
+    "me@oldworkplace.com": "me@companymail.com"
+  }
 }
 ```
 
 The config above will:
 
-- track commits by authors with emails "me@companymail.com" and "me@gmail.com".
+- track commits by author "me@companymail.com"
+- count commits made by "me@gmail.com" and "me@oldworkplace.com" towards the author "me@companymail.com"
 - add 60 minutes before first commits (for a day)
 - "glue together" commits that are less than 2 hours between.
 - count merges as your commit (except for `/Users/tomfa/repos/backend`, where it's overriden)
-- count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/git-csv-timesheet`)
+- count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/random-project`)
 - count 2 repos each for the two projects `Client 1"` and `Personal blog`.
 - for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
 

@@ -17,7 +17,7 @@ export const defaultConfig: Config = {
   until: 'always',
 
   // Include merge requests
-  mergeRequest: true,
+  countMerges: true,
 
   // Git repo
   gitPath: '.',

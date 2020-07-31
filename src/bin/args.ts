@@ -48,7 +48,7 @@ export function parseCommandLineArgs(): Partial<Config> {
       '-m, --merge-request [false|true]',
       'Include merge requests into calculation. ' +
         ' Default: ' +
-        defaultConfig.mergeRequest,
+        defaultConfig.countMerges,
       String,
     )
     .option(
@@ -106,15 +106,15 @@ export function parseCommandLineArgs(): Partial<Config> {
 
   program.parse(process.argv);
 
-  const confArgs = {
+  const confArgs: Config = {
     maxCommitDiffInMinutes: program.maxCommitDiff,
     firstCommitAdditionInMinutes: program.firstCommitAdd,
     since: program.since,
     until: program.until,
     gitPath: program.path,
-    mergeRequest:
-      program.mergeRequest === undefined
-        ? program.mergeRequest !== 'false'
+    countMerges:
+      program.countMerges === undefined
+        ? program.countMerges !== 'false'
         : undefined,
     branch: program.branch,
     emailAliases: parseEmailArg(process.argv),

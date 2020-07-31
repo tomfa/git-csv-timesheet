@@ -42,7 +42,7 @@ export async function getCommits(
     return item.sha;
   });
 
-  if (config.mergeRequest) {
+  if (config.countMerges) {
     return uniqueCommits;
   }
 
