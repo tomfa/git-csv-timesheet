@@ -3,6 +3,8 @@ export type EmailAliases = {
 };
 export type RepoAuthorContribution = { name: string; hours: number; commits: number };
 
+export type RepoWorkSummary = { [email: string]: RepoAuthorContribution }
+
 export type Config = {
   maxCommitDiffInMinutes: number;
   firstCommitAdditionInMinutes: number;

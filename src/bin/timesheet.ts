@@ -3,10 +3,11 @@
 import { getConfig } from '../config';
 import { parseCommandLineArgs } from "./args";
 import { analyzeTimeSpentForRepository } from '../analyzer';
+import { printAsCSV } from '../print';
 
 const commandLineArgs = parseCommandLineArgs();
 const config = getConfig(commandLineArgs);
 
 analyzeTimeSpentForRepository(config).then((work) =>
-  console.log(JSON.stringify(work, undefined, 2)),
+  printAsCSV(work)
 );

@@ -2,9 +2,9 @@ import * as git from './git';
 import { Commit } from 'nodegit';
 const _ = require('lodash');
 
-import { Config, RepoAuthorContribution } from './types';
+import { Config, RepoAuthorContribution, RepoWorkSummary } from './types';
 
-export async function analyzeTimeSpentForRepository(config: Config) {
+export async function analyzeTimeSpentForRepository(config: Config): Promise<RepoWorkSummary> {
   if (git.isShallowGitRepo(config.gitPath)) {
     console.log('Cannot analyze shallow copies!');
     console.log('Please run git fetch --unshallow before continuing!');
