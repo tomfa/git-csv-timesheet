@@ -1,9 +1,11 @@
+import { Commit } from 'nodegit';
+
 export type EmailAliases = {
   [email: string]: string;
 };
 export type RepoAuthorContribution = { hours: number; commits: number };
 
-export type CommitSummary = { timestamps: Date[] }
+export type CommitSummary = { commits: Commit[] }
 export type RepoWorkSummary = { [email: string]: RepoAuthorContribution }
 
 export type Config = {

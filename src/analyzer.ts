@@ -1,5 +1,4 @@
 import * as git from './git';
-import { Commit } from 'nodegit';
 const _ = require('lodash');
 
 import {
@@ -8,6 +7,7 @@ import {
   RepoAuthorContribution,
   RepoWorkSummary,
 } from './types';
+import { Commit } from 'nodegit';
 
 export async function getCommitTimestamps(
   config: Config,
@@ -24,16 +24,18 @@ export async function getCommitTimestamps(
     config,
   );
 
-  const commitsByEmail: { [email: string]: Commit[] } = _.groupBy(
-    allCommits,
-    function (commit) {
-      let email: string = commit.author.email || 'unknown';
-      if (config.emailAliases[email] !== undefined) {
-        email = config.emailAliases[email];
-      }
-      return email;
-    },
-  );
+  const commitsByEmail = allCommits.reduce((map, commit) => {
+    // @ts-ignore Bug in nodegit types: believes author is a function
+    let email: string = commit.author.email || 'unknown';
+    if (config.emailAliases[email] !== undefined) {
+      email = config.emailAliases[email];
+    }
+    if (!map[email]) {
+      map[email] = [];
+    }
+    map[email].push(commit);
+    return map;
+  }, {});
   if (config.authors.length > 0) {
     Object.keys(commitsByEmail).forEach((email) => {
       if (!config.authors.includes(email)) {
@@ -41,28 +43,52 @@ export async function getCommitTimestamps(
       }
     });
   }
-  return Object.entries(commitsByEmail).reduce(
-    (commitSummary, [email, commits]) => {
-      commitSummary[email] = { timestamps: commits.map((c) => c.date) };
-      return commitSummary;
-    },
-    {},
-  );
+  Object.keys(commitsByEmail).map((email) => {
+    const commits = commitsByEmail[email];
+    commitsByEmail[email] = {
+      commits,
+    };
+  });
+  return commitsByEmail;
+}
+
+export function analyzeTimeSpentForCommits({
+  commits,
+  firstCommitAdditionInMinutes,
+  maxCommitDiffInMinutes,
+}: {
+  commits: Commit[];
+  firstCommitAdditionInMinutes: number;
+  maxCommitDiffInMinutes: number;
+}) {
+  // @ts-ignore Bug in nodegit types: believes date is a function
+  const timestamps: Date[] = commits.map((c) => c.date);
+  return {
+    hours: estimateHours({
+      dates: timestamps,
+      firstCommitAdditionInMinutes,
+      maxCommitDiffInMinutes,
+    }),
+    commits: commits.length,
+  };
 }
 
 export async function analyzeTimeSpentForRepository(
   config: Config,
 ): Promise<RepoWorkSummary> {
   const commitSummaries = await getCommitTimestamps(config);
+  const { firstCommitAdditionInMinutes, maxCommitDiffInMinutes } = config;
 
-  const authorWorks = _.map(commitSummaries, function (
-    summary,
-    authorEmail,
-  ) {
+  const authorWorks = Object.keys(commitSummaries).map((email) => {
+    const authorSummary = commitSummaries[email];
+    const timeSummary = analyzeTimeSpentForCommits({
+      commits: authorSummary.commits,
+      firstCommitAdditionInMinutes,
+      maxCommitDiffInMinutes,
+    });
     return {
-      email: authorEmail,
-      hours: estimateHours(summary.timestamps, config),
-      commits: summary.timestamps.length,
+      ...timeSummary,
+      email,
     };
   });
 
@@ -83,7 +109,7 @@ export async function analyzeTimeSpentForRepository(
     );
 
     const numberOfCommits = Object.values(commitSummaries).reduce(
-      (count, commits) => count + commits.timestamps.length,
+      (count, summary) => count + summary.commits.length,
       0,
     );
     sortedWork['total'] = {
@@ -95,7 +121,15 @@ export async function analyzeTimeSpentForRepository(
 }
 
 // Estimates spent working hours based on commit dates
-function estimateHours(dates: Date[], config: Config): number {
+function estimateHours({
+  dates,
+  firstCommitAdditionInMinutes,
+  maxCommitDiffInMinutes,
+}: {
+  dates: Date[];
+  firstCommitAdditionInMinutes: number;
+  maxCommitDiffInMinutes: number;
+}): number {
   if (dates.length < 2) {
     return 0;
   }
@@ -104,7 +138,7 @@ function estimateHours(dates: Date[], config: Config): number {
   const sortedDates = dates.sort(function (a, b) {
     return a.getTime() - b.getTime();
   });
-  const allButLast = _.take(sortedDates, sortedDates.length - 1);
+  const allButLast = sortedDates.slice(0, sortedDates.length - 1);
 
   const totalHours = _.reduce(
     allButLast,
@@ -113,14 +147,14 @@ function estimateHours(dates: Date[], config: Config): number {
       const diffInMinutes = (nextDate.getTime() - date.getTime()) / 1000 / 60;
 
       // Check if commits are counted to be in same coding session
-      if (diffInMinutes < config.maxCommitDiffInMinutes) {
+      if (diffInMinutes < maxCommitDiffInMinutes) {
         return hours + diffInMinutes / 60;
       }
 
       // The date difference is too big to be inside single coding session
       // The work of first commit of a session cannot be seen in git history,
       // so we make a blunt estimate of it
-      return hours + config.firstCommitAdditionInMinutes / 60;
+      return hours + firstCommitAdditionInMinutes / 60;
     },
     0,
   );
