@@ -1,19 +1,21 @@
 export type EmailAliases = {
   [email: string]: string;
 };
-export type RepoAuthorContribution = { hours: number; commits: number };
+export type RepoAuthorContribution = {
+  [isoDateDay: string]: { hours: number; commits: number };
+};
 
 export type CommitSummary = { commits: Commit[] };
 export type RepoWorkSummary = { [email: string]: RepoAuthorContribution };
 export type CompleteSummary = {
-  [repository: string]: RepoWorkSummary
-}
+  [repository: string]: RepoWorkSummary;
+};
 export type CompleteUserSummary = {
   contributions: {
     [repository: string]: RepoAuthorContribution;
   };
   email: string;
-}
+};
 
 export type Commit = {
   sha: string;

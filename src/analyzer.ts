@@ -67,30 +67,36 @@ export function getUserContribution({
   if (commits.length === 1) {
     const commit = commits[0];
     return {
-      [commit.repo]: { hours: firstCommitAdditionInMinutes / 60, commits: 1 },
+      [commit.repo]: {
+        [asISOday(commit.date)]: {
+          hours: firstCommitAdditionInMinutes / 60,
+          commits: 1,
+        },
+      },
     };
   }
 
-  const sortedDates = commits.sort(oldestLastSorter);
-
-  // Why do we do this?
-  const allButLast = sortedDates.slice(0, sortedDates.length - 1);
+  const sortedCommits = commits.sort(oldestLastSorter);
 
   const repoSummary: { [repository: string]: RepoAuthorContribution } = {};
-  const addCommitData = (timeInMinutes: number, repository: string) => {
+  const addCommitData = (timeInMinutes: number, repository: string, date: Date) => {
+    const isoDay = asISOday(date);
     if (!repoSummary[repository]) {
-      repoSummary[repository] = {
-        hours: 0,
+      repoSummary[repository] = {};
+    }
+    if (!repoSummary[repository][isoDay]) {
+      repoSummary[repository][isoDay] = {
         commits: 0,
+        hours: 0
       };
     }
-    repoSummary[repository].commits += 1;
-    repoSummary[repository].hours += timeInMinutes / 60;
+    repoSummary[repository][isoDay].commits += 1;
+    repoSummary[repository][isoDay].hours += timeInMinutes / 60;
   };
 
   let lastTimeStamp = null;
 
-  allButLast.forEach((commit) => {
+  sortedCommits.forEach((commit) => {
     let diffInMinutes =
       lastTimeStamp && getDiffInMinutes(commit.date, lastTimeStamp);
     lastTimeStamp = commit.date;
@@ -103,7 +109,7 @@ export function getUserContribution({
       );
       diffInMinutes = firstCommitAdditionInMinutes;
     }
-    addCommitData(diffInMinutes, commit.repo);
+    addCommitData(diffInMinutes, commit.repo, commit.date);
   });
 
   return repoSummary;
@@ -167,3 +173,4 @@ const getDateInfo = (d: Date): { date: string; time: string } => ({
   date: d.toISOString().substr(0, 10),
   time: d.toISOString().substr(11, 5),
 });
+const asISOday = (d: Date) => d.toISOString().substr(0, 10);
