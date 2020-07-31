@@ -4,21 +4,57 @@ const _ = require('lodash');
 const moment = require('moment');
 const fs = require('fs');
 
-import { Commit, Config } from './types';
-
+import { Commit } from './types';
 
 export function isShallowGitRepo(path: string): boolean {
   return fs.existsSync(path + '.git/shallow');
 }
 
-// Promisify nodegit's API of getting all commits in repository
-export async function getCommits(
-  gitPath: string,
-  branch: string | null,
-  config: Config,
-): Promise<Commit[]> {
-  const repo: Repository = await git.Repository.open(gitPath);
-  const allReferences = await getAllReferences(repo);
+export async function getCommits({
+  gitPaths,
+  branch,
+  countMerges,
+  since,
+  until,
+}: {
+  gitPaths: string[];
+  branch: string | null;
+  countMerges: boolean;
+  since: string | Date;
+  until: string | Date;
+}) {
+  const listOfCommitLists: Commit[][] = await Promise.all(
+    gitPaths.map(async (path) =>
+      getCommitsForRepository({
+        gitPath: path,
+        branch,
+        countMerges,
+        since,
+        until,
+      }),
+    ),
+  );
+  return listOfCommitLists.reduce((flattenedList, currentList) => {
+    flattenedList = [...flattenedList, ...currentList];
+    return flattenedList;
+  }, []);
+}
+
+export async function getCommitsForRepository({
+  gitPath,
+  branch,
+  countMerges,
+  since,
+  until,
+}: {
+  gitPath: string;
+  branch: string | null;
+  countMerges: boolean;
+  since: string | Date;
+  until: string | Date;
+}): Promise<Commit[]> {
+  const repository: Repository = await git.Repository.open(gitPath);
+  const allReferences = await getAllReferences(repository);
 
   let references;
   if (branch) {
@@ -29,11 +65,18 @@ export async function getCommits(
 
   const allCommits = [];
   const latestBranchCommits: GitCommit[] = await Promise.all(
-    references.map((branchName) => getBranchLatestCommit(repo, branchName)),
+    references.map((branchName) =>
+      getBranchLatestCommit(repository, branchName),
+    ),
   );
   for (const latestCommit of latestBranchCommits) {
     // TODO: This is a sync loop with an parallelizable call. Make Promise?
-    const branchCommits = await getBranchCommits(latestCommit, config);
+    const branchCommits = await getBranchCommits({
+      latestCommit,
+      since,
+      until,
+      repository,
+    });
     branchCommits.forEach((c) => allCommits.push(c));
   }
 
@@ -42,7 +85,7 @@ export async function getCommits(
     return item.sha;
   });
 
-  if (config.countMerges) {
+  if (countMerges) {
     return uniqueCommits;
   }
 
@@ -63,16 +106,22 @@ export async function getBranchLatestCommit(
   });
 }
 
-export async function getBranchCommits(
-  branchLatestCommit: GitCommit,
-  config: Config,
-  repository?: Repository
-): Promise<Commit[]> {
+export async function getBranchCommits({
+  latestCommit,
+  repository,
+  since,
+  until,
+}: {
+  latestCommit: GitCommit;
+  repository?: Repository;
+  since: string | Date;
+  until: string | Date;
+}): Promise<Commit[]> {
   if (!repository) {
-    repository = branchLatestCommit.owner()
+    repository = latestCommit.owner();
   }
   return new Promise(function (resolve, reject) {
-    const history = branchLatestCommit.history();
+    const history = latestCommit.history();
     const commits = [];
 
     history.on('commit', function (commit) {
@@ -89,25 +138,22 @@ export async function getBranchCommits(
         date: commit.date(),
         message: commit.message(),
         author: author,
-        repo: repository.commondir().replace('/.git/', '')
+        repo: repository.commondir().replace('/.git/', ''),
       };
 
       let isValidSince = true;
-      const sinceAlways = config.since === 'always' || !config.since;
-      if (
-        sinceAlways ||
-        moment(commitData.date.toISOString()).isAfter(config.since)
-      ) {
+      const sinceAlways = since === 'always' || !since;
+      if (sinceAlways || moment(commitData.date.toISOString()).isAfter(since)) {
         isValidSince = true;
       } else {
         isValidSince = false;
       }
 
       let isValidUntil = true;
-      const untilAlways = config.until === 'always' || !config.until;
+      const untilAlways = until === 'always' || !until;
       if (
         untilAlways ||
-        moment(commitData.date.toISOString()).isBefore(config.until)
+        moment(commitData.date.toISOString()).isBefore(until)
       ) {
         isValidUntil = true;
       } else {

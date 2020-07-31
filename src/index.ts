@@ -1,7 +1,7 @@
 import * as types from "./types";
-import { analyzeTimeSpentForRepository } from './analyzer';
+import { analyzeTimeSpent } from './analyzer';
 
 export {
-  analyzeTimeSpentForRepository,
+  analyzeTimeSpent,
   types,
 }

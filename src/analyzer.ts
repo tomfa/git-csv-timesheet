@@ -5,12 +5,12 @@ import {
   Commit,
   CommitSummary,
   Config,
+  CompleteSummary,
+  CompleteUserSummary,
   RepoAuthorContribution,
-  RepoAuthorContributionWithEmail,
-  RepoWorkSummary,
 } from './types';
 
-export async function getCommitTimestamps(
+export async function getCommitSummaries(
   config: Config,
 ): Promise<{ [email: string]: CommitSummary }> {
   if (git.isShallowGitRepo(config.gitPath)) {
@@ -19,11 +19,14 @@ export async function getCommitTimestamps(
     process.exit(1);
   }
 
-  const allCommits = await git.getCommits(
-    config.gitPath,
-    config.branch,
-    config,
-  );
+  const { gitPath, branch, countMerges, since, until } = config;
+  const allCommits = await git.getCommitsForRepository({
+    gitPath,
+    branch,
+    countMerges,
+    since,
+    until,
+  });
 
   const commitsByEmail = allCommits.reduce((map, commit) => {
     let email: string = commit.author.email || 'unknown';
@@ -52,7 +55,7 @@ export async function getCommitTimestamps(
   return commitsByEmail;
 }
 
-export async function analyzeTimeSpentForCommits({
+export function getUserContribution({
   commits,
   firstCommitAdditionInMinutes,
   maxCommitDiffInMinutes,
@@ -60,110 +63,101 @@ export async function analyzeTimeSpentForCommits({
   commits: Commit[];
   firstCommitAdditionInMinutes: number;
   maxCommitDiffInMinutes: number;
-}) {
-  const timestamps: Date[] = commits.map((c) => c.date);
-  return {
-    hours: estimateHours({
-      dates: timestamps,
-      firstCommitAdditionInMinutes,
-      maxCommitDiffInMinutes,
-    }),
-    commits: commits.length,
+}): {
+  [repository: string]: RepoAuthorContribution;
+} {
+  if (commits.length === 0) {
+    return {};
+  }
+  if (commits.length === 1) {
+    const commit = commits[0];
+    return {
+      [commit.repo]: { hours: firstCommitAdditionInMinutes / 60, commits: 1 },
+    };
+  }
+
+  const sortedDates = commits.sort(oldestLastSorter);
+
+  // Why do we do this?
+  const allButLast = sortedDates.slice(0, sortedDates.length - 1);
+
+  const repoSummary: { [repository: string]: RepoAuthorContribution } = {};
+  const addCommitData = (timeInMinutes: number, repository: string) => {
+    if (!repoSummary[repository]) {
+      repoSummary[repository] = {
+        hours: 0,
+        commits: 0,
+      };
+    }
+    repoSummary[repository].commits += 1;
+    repoSummary[repository].hours += timeInMinutes / 60;
   };
+
+  let lastTimeStamp = null;
+
+  allButLast.forEach((commit) => {
+    let diffInMinutes =
+      lastTimeStamp && getDiffInMinutes(commit.date, lastTimeStamp);
+    if (diffInMinutes === null || diffInMinutes > maxCommitDiffInMinutes) {
+      diffInMinutes = firstCommitAdditionInMinutes;
+    }
+    addCommitData(diffInMinutes, commit.repo);
+  });
+
+  return repoSummary;
 }
 
-export async function analyzeTimeSpentForRepository(
+export async function analyzeTimeSpent(
   config: Config,
-): Promise<RepoWorkSummary> {
-  const commitSummaries = await getCommitTimestamps(config);
+): Promise<CompleteSummary> {
+  const commitSummaries = await getCommitSummaries(config);
   const { firstCommitAdditionInMinutes, maxCommitDiffInMinutes } = config;
 
-  const authorWorks: RepoAuthorContributionWithEmail[] = await Promise.all(
+  const authorWorks: CompleteUserSummary[] = await Promise.all(
     Object.keys(commitSummaries).map(async (email) => {
       const authorSummary = commitSummaries[email];
-      const timeSummary = await analyzeTimeSpentForCommits({
+      const timeSummary = await getUserContribution({
         commits: authorSummary.commits,
         firstCommitAdditionInMinutes,
         maxCommitDiffInMinutes,
       });
-      return {
-        ...timeSummary,
-        email,
-      };
+      return { contributions: timeSummary, email };
     }),
   );
 
-  // XXX: This relies on the implementation detail that json is printed
-  // in the same order as the keys were added. This is anyway just for
-  // making the output easier to read, so it doesn't matter if it
-  // isn't sorted in some cases.
-  const sortedWork: { [email: string]: RepoAuthorContribution } = {};
+  const completeSummary: CompleteSummary = {};
 
-  authorWorks
-    .sort((a, b) => (a.hours < b.hours ? 1 : -1))
-    .forEach((work) => {
-      const data = { ...work };
-      delete data.email;
-      sortedWork[work.email] = data;
-    });
-
-  if (config.authors.length !== 1) {
-    const totalHours = Object.values(sortedWork).reduce(
-      (sum, authorWork) => sum + authorWork.hours,
-      0,
-    );
-
-    const numberOfCommits = Object.values(commitSummaries).reduce(
-      (count, summary) => count + summary.commits.length,
-      0,
-    );
-    sortedWork['total'] = {
-      hours: totalHours,
-      commits: numberOfCommits,
-    };
-  }
-  return sortedWork;
-}
-
-// Estimates spent working hours based on commit dates
-function estimateHours({
-  dates,
-  firstCommitAdditionInMinutes,
-  maxCommitDiffInMinutes,
-}: {
-  dates: Date[];
-  firstCommitAdditionInMinutes: number;
-  maxCommitDiffInMinutes: number;
-}): number {
-  if (dates.length < 2) {
-    return 0;
-  }
-
-  // Oldest commit first, newest last
-  const sortedDates = dates.sort(function (a, b) {
-    return a.getTime() - b.getTime();
-  });
-  const allButLast = sortedDates.slice(0, sortedDates.length - 1);
-
-  const totalHours = _.reduce(
-    allButLast,
-    function (hours, date, index) {
-      const nextDate = sortedDates[index + 1];
-      const diffInMinutes = (nextDate.getTime() - date.getTime()) / 1000 / 60;
-
-      // Check if commits are counted to be in same coding session
-      if (diffInMinutes < maxCommitDiffInMinutes) {
-        return hours + diffInMinutes / 60;
+  authorWorks.forEach((work) => {
+    const { email, contributions } = work;
+    Object.keys(contributions).forEach((repository) => {
+      if (!completeSummary[repository]) {
+        completeSummary[repository] = {};
       }
+      completeSummary[repository][email] = contributions[repository];
+    });
+  });
 
-      // The date difference is too big to be inside single coding session
-      // The work of first commit of a session cannot be seen in git history,
-      // so we make a blunt estimate of it
-      return hours + firstCommitAdditionInMinutes / 60;
-    },
-    0,
-  );
-
-  // TODO: Consider swiching to Number.parseFloat(a.toFixed(2))
-  return Math.round(totalHours);
+  // TODO: Summarize or sort the report
+  // if (config.authors.length !== 1) {
+  //   const totalHours = Object.values(sortedWork).reduce(
+  //     (sum, authorWork) => sum + authorWork.hours,
+  //     0,
+  //   );
+  //
+  //   const numberOfCommits = Object.values(commitSummaries).reduce(
+  //     (count, summary) => count + summary.commits.length,
+  //     0,
+  //   );
+  //   sortedWork['total'] = {
+  //     hours: totalHours,
+  //     commits: numberOfCommits,
+  //   };
+  // }
+  return completeSummary;
 }
+
+const oldestLastSorter = (a: Commit, b: Commit) =>
+  a.date.getTime() - b.date.getTime();
+const getDiffInMinutes = (a: Date, b: Date) => {
+  return Math.abs(a.getTime() - b.getTime() / 1000 / 60);
+};
