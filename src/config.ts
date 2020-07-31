@@ -1,8 +1,11 @@
-import { Config } from './types';
+import { Config, HomeDirectoryConfig } from './types';
+import { readHomeDirectoryConfig } from './files';
 
 const moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
+
+export const HOMEDIR_CONFIG_FILE_NAME = '.timesheetrc';
 
 export const defaultConfig: Config = {
   // Maximum time diff between 2 subsequent commits in minutes which are
@@ -50,9 +53,23 @@ function parseInputDate(inputDate: string | Date): Date | 'always' {
   }
 }
 
+function getHomeDirectoryConfig(): Partial<HomeDirectoryConfig> {
+  try {
+    const config = readHomeDirectoryConfig(HOMEDIR_CONFIG_FILE_NAME);
+    console.log(`Using config from ${HOMEDIR_CONFIG_FILE_NAME}`);
+    return config;
+  } catch (error) {
+    return {};
+  }
+}
+
 export function getConfig(overrides: Partial<Config>): Config {
-  const config = { ...defaultConfig, ...overrides };
+  const homeDirConfig = getHomeDirectoryConfig();
+  const config = { ...defaultConfig, ...homeDirConfig, ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);
+  if (overrides.gitPath) {
+    delete config.repositories;
+  }
   return config;
 }
