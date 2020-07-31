@@ -15,18 +15,6 @@ export type CompleteUserSummary = {
   email: string;
 }
 
-export type Config = {
-  maxCommitDiffInMinutes: number;
-  firstCommitAdditionInMinutes: number;
-  since: string | Date;
-  until: string | Date;
-  countMerges: boolean;
-  gitPath: string;
-  authors: Array<string>;
-  emailAliases: EmailAliases;
-  branch: string | null;
-};
-
 export type Commit = {
   sha: string;
   date: Date;
@@ -40,6 +28,18 @@ export type RepositoryConfig = {
   path: string;
   countMerges: boolean;
   trackTasks: boolean;
+};
+
+export type Config = {
+  maxCommitDiffInMinutes: number;
+  firstCommitAdditionInMinutes: number;
+  since: string | Date;
+  until: string | Date;
+  countMerges: boolean;
+  gitPaths: string[];
+  authors: Array<string>;
+  emailAliases: EmailAliases;
+  branch: string | null;
 };
 
 export type HomeDirectoryConfig = {

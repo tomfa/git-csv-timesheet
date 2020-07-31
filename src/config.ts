@@ -23,7 +23,7 @@ export const defaultConfig: Config = {
   countMerges: true,
 
   // Git repo
-  gitPath: '.',
+  gitPaths: ['.'],
 
   // Aliases of emails for grouping the same activity as one person
   emailAliases: {
@@ -69,8 +69,14 @@ export function getConfig(overrides: Partial<Config>): Config {
   const config = { ...defaultConfig, ...homeDirConfig, ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);
-  if (overrides.gitPath) {
-    delete config.repositories;
+  if (config.repositories && config.gitPaths.length === 0) {
+    config.gitPaths = config.repositories.map(repo => {
+      if (typeof(repo) === 'string') {
+        return repo
+      }
+      return repo.path
+    })
   }
+  // TODO: Verify that each gitPath is a valid repository
   return config;
 }

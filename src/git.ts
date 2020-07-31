@@ -53,6 +53,12 @@ export async function getCommitsForRepository({
   since: string | Date;
   until: string | Date;
 }): Promise<Commit[]> {
+  if (isShallowGitRepo(gitPath)) {
+    console.log(`Cannot analyze shallow git repo: ${gitPath}!`);
+    console.log(`To fix this issue: run git fetch --unshallow inside ${gitPath}`);
+    return [];
+  }
+
   const repository: Repository = await git.Repository.open(gitPath);
   const allReferences = await getAllReferences(repository);
 

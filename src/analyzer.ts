@@ -13,15 +13,10 @@ import {
 export async function getCommitSummaries(
   config: Config,
 ): Promise<{ [email: string]: CommitSummary }> {
-  if (git.isShallowGitRepo(config.gitPath)) {
-    console.log('Cannot analyze shallow copies!');
-    console.log('Please run git fetch --unshallow before continuing!');
-    process.exit(1);
-  }
 
-  const { gitPath, branch, countMerges, since, until } = config;
-  const allCommits = await git.getCommitsForRepository({
-    gitPath,
+  const { gitPaths, branch, countMerges, since, until } = config;
+  const allCommits = await git.getCommits({
+    gitPaths,
     branch,
     countMerges,
     since,

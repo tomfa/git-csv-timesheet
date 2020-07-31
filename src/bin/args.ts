@@ -53,7 +53,7 @@ export function parseCommandLineArgs(): Partial<Config> {
     )
     .option(
       '-p, --path [git-repo]',
-      'Git repository to analyze.' + ' Default: ' + defaultConfig.gitPath,
+      'Git repository to analyze.' + ' Default: ' + defaultConfig.gitPaths.join(' and '),
       String,
     )
     .option(
@@ -120,7 +120,7 @@ export function parseCommandLineArgs(): Partial<Config> {
     firstCommitAdditionInMinutes: program.firstCommitAdd,
     since: program.since,
     until: program.until,
-    gitPath: program.path,
+    gitPaths: program.path ? [program.path]: [],
     countMerges: !program.countMerges
       ? undefined
       : program.countMerges === 'true',
