@@ -114,20 +114,19 @@ export function parseCommandLineArgs(): Partial<Config> {
 
   program.parse(process.argv);
 
-  const authors: string[] = parseAuthorsArg(program.authors)
+  const authors: string[] = parseAuthorsArg(program.authors);
   const confArgs: Config = {
     maxCommitDiffInMinutes: program.maxCommitDiff,
     firstCommitAdditionInMinutes: program.firstCommitAdd,
     since: program.since,
     until: program.until,
     gitPath: program.path,
-    countMerges:
-      program.countMerges === undefined
-        ? program.countMerges !== 'false'
-        : undefined,
+    countMerges: !program.countMerges
+      ? undefined
+      : program.countMerges === 'true',
     branch: program.branch,
     emailAliases: parseEmailArg(process.argv),
-    authors
+    authors,
   };
 
   for (let [key, value] of Object.entries(confArgs)) {
@@ -163,6 +162,10 @@ function parseEmailArg(argv: string[]): EmailAliases {
     }
   }
 
+  if (Object.keys(aliases).length === 0) {
+    return undefined;
+  }
+
   return aliases;
 }
 
@@ -171,7 +174,7 @@ function parseAuthorsArg(authorArg: string | string[]): string[] {
     return authorArg;
   }
   if (!authorArg) {
-    return []
+    return undefined;
   }
-  return authorArg.split(',')
+  return authorArg.split(',');
 }
