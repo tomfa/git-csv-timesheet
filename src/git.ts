@@ -1,6 +1,5 @@
 import { Commit as GitCommit, Repository } from 'nodegit';
 const git = require('nodegit');
-const _ = require('lodash');
 const moment = require('moment');
 const fs = require('fs');
 
@@ -55,7 +54,9 @@ export async function getCommitsForRepository({
 }): Promise<Commit[]> {
   if (isShallowGitRepo(gitPath)) {
     console.log(`Cannot analyze shallow git repo: ${gitPath}!`);
-    console.log(`To fix this issue: run git fetch --unshallow inside ${gitPath}`);
+    console.log(
+      `To fix this issue: run git fetch --unshallow inside ${gitPath}`,
+    );
     return [];
   }
 
@@ -87,9 +88,7 @@ export async function getCommitsForRepository({
   }
 
   // Multiple branches might share commits, so take unique
-  const uniqueCommits = _.uniq(allCommits, function (item, key, a) {
-    return item.sha;
-  });
+  const uniqueCommits = allCommits.filter(generateUniquesBasedOnKeyFilter('sha'));
 
   if (countMerges) {
     return uniqueCommits;
@@ -131,55 +130,44 @@ export async function getBranchCommits({
     const commits = [];
 
     history.on('commit', function (commit) {
-      let author = null;
-      if (!_.isNull(commit.author())) {
-        author = {
-          name: commit.author().name(),
-          email: commit.author().email(),
-        };
-      }
+      const commitAuthor = commit.author();
+      const author = commitAuthor
+        ? { name: commitAuthor.name(), email: commitAuthor.email() }
+        : { name: 'unknown', email: 'unknown@example.com' };
 
       const commitData: Commit = {
         sha: commit.sha(),
         date: commit.date(),
         message: commit.message(),
-        author: author,
+        author,
         repo: repository.commondir().replace('/.git/', ''),
       };
 
-      let isValidSince = true;
+      const commitDate = moment(commitData.date.toISOString());
       const sinceAlways = since === 'always' || !since;
-      if (sinceAlways || moment(commitData.date.toISOString()).isAfter(since)) {
-        isValidSince = true;
-      } else {
-        isValidSince = false;
-      }
+      const isValidSince = sinceAlways || commitDate.isAfter(since);
 
-      let isValidUntil = true;
       const untilAlways = until === 'always' || !until;
-      if (
-        untilAlways ||
-        moment(commitData.date.toISOString()).isBefore(until)
-      ) {
-        isValidUntil = true;
-      } else {
-        isValidUntil = false;
-      }
+      const isValidUntil = untilAlways || commitDate.isBefore(until);
 
       if (isValidSince && isValidUntil) {
         commits.push(commitData);
       }
     });
 
-    history.on('end', function () {
-      resolve(commits);
-    });
-
-    history.on('error', function (err) {
-      reject(err);
-    });
-
-    // Start emitting events.
+    history.on('end', () => resolve(commits));
+    history.on('error', (err) => reject(err));
     history.start();
   });
 }
+
+const generateUniquesBasedOnKeyFilter = (key: string) => {
+  const uniques = new Set();
+  return (item => {
+    const alreadyAdded = uniques.has(item[key]);
+    if (!alreadyAdded) {
+      uniques.add(item[key]);
+    }
+    return !alreadyAdded;
+  })
+};

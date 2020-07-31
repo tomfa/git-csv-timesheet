@@ -1,6 +1,5 @@
 import * as git from './git';
 import logger from './logger';
-const _ = require('lodash');
 
 import {
   Commit,
