@@ -1,10 +1,10 @@
-import { Commit, Repository } from 'nodegit';
+import { Commit as GitCommit, Repository } from 'nodegit';
 const git = require('nodegit');
 const _ = require('lodash');
 const moment = require('moment');
 const fs = require('fs');
 
-import { Config } from './types';
+import { Commit, Config } from './types';
 
 
 export function isShallowGitRepo(path: string): boolean {
@@ -28,7 +28,7 @@ export async function getCommits(
   }
 
   const allCommits = [];
-  const latestBranchCommits: Commit[] = await Promise.all(
+  const latestBranchCommits: GitCommit[] = await Promise.all(
     references.map((branchName) => getBranchLatestCommit(repo, branchName)),
   );
   for (const latestCommit of latestBranchCommits) {
@@ -57,16 +57,20 @@ function getAllReferences(repo: Repository): Promise<string[]> {
 export async function getBranchLatestCommit(
   repo: Repository,
   branchName: string,
-): Promise<Commit> {
+): Promise<GitCommit> {
   return await repo.getBranch(branchName).then(function (reference) {
     return repo.getBranchCommit(reference.name());
   });
 }
 
 export async function getBranchCommits(
-  branchLatestCommit: Commit,
+  branchLatestCommit: GitCommit,
   config: Config,
+  repository?: Repository
 ): Promise<Commit[]> {
+  if (!repository) {
+    repository = branchLatestCommit.owner()
+  }
   return new Promise(function (resolve, reject) {
     const history = branchLatestCommit.history();
     const commits = [];
@@ -80,11 +84,12 @@ export async function getBranchCommits(
         };
       }
 
-      const commitData = {
+      const commitData: Commit = {
         sha: commit.sha(),
         date: commit.date(),
         message: commit.message(),
         author: author,
+        repo: repository.commondir().replace('/.git/', '')
       };
 
       let isValidSince = true;

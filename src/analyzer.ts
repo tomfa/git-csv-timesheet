@@ -2,12 +2,13 @@ import * as git from './git';
 const _ = require('lodash');
 
 import {
+  Commit,
   CommitSummary,
   Config,
   RepoAuthorContribution,
+  RepoAuthorContributionWithEmail,
   RepoWorkSummary,
 } from './types';
-import { Commit } from 'nodegit';
 
 export async function getCommitTimestamps(
   config: Config,
@@ -25,7 +26,6 @@ export async function getCommitTimestamps(
   );
 
   const commitsByEmail = allCommits.reduce((map, commit) => {
-    // @ts-ignore Bug in nodegit types: believes author is a function
     let email: string = commit.author.email || 'unknown';
     if (config.emailAliases[email] !== undefined) {
       email = config.emailAliases[email];
@@ -52,7 +52,7 @@ export async function getCommitTimestamps(
   return commitsByEmail;
 }
 
-export function analyzeTimeSpentForCommits({
+export async function analyzeTimeSpentForCommits({
   commits,
   firstCommitAdditionInMinutes,
   maxCommitDiffInMinutes,
@@ -61,7 +61,6 @@ export function analyzeTimeSpentForCommits({
   firstCommitAdditionInMinutes: number;
   maxCommitDiffInMinutes: number;
 }) {
-  // @ts-ignore Bug in nodegit types: believes date is a function
   const timestamps: Date[] = commits.map((c) => c.date);
   return {
     hours: estimateHours({
@@ -79,18 +78,20 @@ export async function analyzeTimeSpentForRepository(
   const commitSummaries = await getCommitTimestamps(config);
   const { firstCommitAdditionInMinutes, maxCommitDiffInMinutes } = config;
 
-  const authorWorks = Object.keys(commitSummaries).map((email) => {
-    const authorSummary = commitSummaries[email];
-    const timeSummary = analyzeTimeSpentForCommits({
-      commits: authorSummary.commits,
-      firstCommitAdditionInMinutes,
-      maxCommitDiffInMinutes,
-    });
-    return {
-      ...timeSummary,
-      email,
-    };
-  });
+  const authorWorks: RepoAuthorContributionWithEmail[] = await Promise.all(
+    Object.keys(commitSummaries).map(async (email) => {
+      const authorSummary = commitSummaries[email];
+      const timeSummary = await analyzeTimeSpentForCommits({
+        commits: authorSummary.commits,
+        firstCommitAdditionInMinutes,
+        maxCommitDiffInMinutes,
+      });
+      return {
+        ...timeSummary,
+        email,
+      };
+    }),
+  );
 
   // XXX: This relies on the implementation detail that json is printed
   // in the same order as the keys were added. This is anyway just for
@@ -98,9 +99,13 @@ export async function analyzeTimeSpentForRepository(
   // isn't sorted in some cases.
   const sortedWork: { [email: string]: RepoAuthorContribution } = {};
 
-  _.each(_.sortBy(authorWorks, 'hours'), function (authorWork) {
-    sortedWork[authorWork.email] = _.omit(authorWork, 'email');
-  });
+  authorWorks
+    .sort((a, b) => (a.hours < b.hours ? 1 : -1))
+    .forEach((work) => {
+      const data = { ...work };
+      delete data.email;
+      sortedWork[work.email] = data;
+    });
 
   if (config.authors.length !== 1) {
     const totalHours = Object.values(sortedWork).reduce(

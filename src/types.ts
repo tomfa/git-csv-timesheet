@@ -1,12 +1,14 @@
-import { Commit } from 'nodegit';
-
 export type EmailAliases = {
   [email: string]: string;
 };
 export type RepoAuthorContribution = { hours: number; commits: number };
+export interface RepoAuthorContributionWithEmail
+  extends RepoAuthorContribution {
+  email: string;
+}
 
-export type CommitSummary = { commits: Commit[] }
-export type RepoWorkSummary = { [email: string]: RepoAuthorContribution }
+export type CommitSummary = { commits: Commit[] };
+export type RepoWorkSummary = { [email: string]: RepoAuthorContribution };
 
 export type Config = {
   maxCommitDiffInMinutes: number;
@@ -20,12 +22,20 @@ export type Config = {
   branch: string | null;
 };
 
+export type Commit = {
+  sha: string;
+  date: Date;
+  message: string;
+  author: { name: string; email: string };
+  repo: string;
+};
+
 export type RepositoryConfig = {
   project: string;
   path: string;
   countMerges: boolean;
   trackTasks: boolean;
-}
+};
 
 export type HomeDirectoryConfig = {
   maxCommitDiffInMinutes: number;
@@ -35,4 +45,4 @@ export type HomeDirectoryConfig = {
   branch: string | null;
   authors: Array<string>;
   repositories: Array<string | RepositoryConfig>;
-}
+};
