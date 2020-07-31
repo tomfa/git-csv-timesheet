@@ -46,6 +46,10 @@ function parseInputDate(inputDate: string | Date): Date | 'always' {
       return moment().startOf('week');
     case 'lastweek':
       return moment().startOf('week').subtract(1, 'week');
+    case 'thismonth':
+      return moment().startOf('month');
+    case 'lastmonth':
+      return moment().startOf('month').subtract(1, 'month');
     case 'always':
       return 'always';
     default:
