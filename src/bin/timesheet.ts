@@ -9,8 +9,8 @@ import { printAsCSV } from '../print';
 const printReport = () => {
   const commandLineArgs = parseCommandLineArgs();
   const config = getConfig(commandLineArgs);
-  analyzeTimeSpent(config).then((work) =>
-    printAsCSV(work)
+  analyzeTimeSpent(config).then((summary) =>
+    printAsCSV({ summary })
   );
 }
 

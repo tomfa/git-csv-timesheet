@@ -78,15 +78,22 @@ export function getUserContribution({
   const sortedCommits = commits.sort(oldestLastSorter);
 
   const repoSummary: { [repository: string]: RepoAuthorContribution } = {};
-  const addCommitData = (timeInMinutes: number, repository: string, date: Date) => {
+  const isoDaySet = new Set<string>();
+
+  const addCommitData = (
+    timeInMinutes: number,
+    repository: string,
+    date: Date,
+  ) => {
     const isoDay = asISOday(date);
+    isoDaySet.add(isoDay);
     if (!repoSummary[repository]) {
       repoSummary[repository] = {};
     }
     if (!repoSummary[repository][isoDay]) {
       repoSummary[repository][isoDay] = {
         commits: 0,
-        hours: 0
+        hours: 0,
       };
     }
     repoSummary[repository][isoDay].commits += 1;
@@ -95,6 +102,8 @@ export function getUserContribution({
 
   let lastTimeStamp = null;
 
+  let numSessionsDetected = 0;
+  const repoSet = new Set<string>();
   sortedCommits.forEach((commit) => {
     let diffInMinutes =
       lastTimeStamp && getDiffInMinutes(commit.date, lastTimeStamp);
@@ -102,14 +111,23 @@ export function getUserContribution({
     if (diffInMinutes === null || diffInMinutes > maxCommitDiffInMinutes) {
       const { date, time } = getDateInfo(lastTimeStamp);
       const pauseLength = Math.round(diffInMinutes);
+      numSessionsDetected += 1;
       logger.debug(
         `${pauseLength} minutes diff until ${date} ${time}`,
         `– session starts.`,
       );
       diffInMinutes = firstCommitAdditionInMinutes;
     }
+    repoSet.add(commit.repo);
     addCommitData(diffInMinutes, commit.repo, commit.date);
   });
+
+  logger.log(
+    `\n ${numSessionsDetected} sessions were constructed using\n`,
+    `${sortedCommits.length} commits, made in\n`,
+    `${repoSet.size} repositories, done on\n`,
+    `${isoDaySet.size} days.\n`,
+  );
 
   return repoSummary;
 }
