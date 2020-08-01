@@ -11,7 +11,7 @@ export function parseCommandLineArgs(): Partial<Config> {
 
   program
     // eslint-disable-next-line
-    .version(require('../../package.json').version)
+    .version('0.1.1')
     .usage('[options]')
     .option(
       '-a, --authors [email@gmail.com]',
