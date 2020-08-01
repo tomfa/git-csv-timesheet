@@ -163,22 +163,6 @@ export async function analyzeTimeSpent(
     });
   });
 
-  // TODO: Summarize or sort the report
-  // if (config.authors.length !== 1) {
-  //   const totalHours = Object.values(sortedWork).reduce(
-  //     (sum, authorWork) => sum + authorWork.hours,
-  //     0,
-  //   );
-  //
-  //   const numberOfCommits = Object.values(commitSummaries).reduce(
-  //     (count, summary) => count + summary.commits.length,
-  //     0,
-  //   );
-  //   sortedWork['total'] = {
-  //     hours: totalHours,
-  //     commits: numberOfCommits,
-  //   };
-  // }
   return completeSummary;
 }
 
