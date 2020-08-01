@@ -50,22 +50,22 @@ function parseInputDate(inputDate: string | Date): Date | 'always' {
   }
   switch (inputDate) {
     case 'today':
-      return moment().startOf('day');
+      return moment().startOf('day').toDate();
     case 'yesterday':
-      return moment().startOf('day').subtract(1, 'day');
+      return moment().startOf('day').subtract(1, 'day').toDate();
     case 'thisweek':
-      return moment().startOf('week');
+      return moment().startOf('week').toDate();
     case 'lastweek':
-      return moment().startOf('week').subtract(1, 'week');
+      return moment().startOf('week').subtract(1, 'week').toDate();
     case 'thismonth':
-      return moment().startOf('month');
+      return moment().startOf('month').toDate();
     case 'lastmonth':
-      return moment().startOf('month').subtract(1, 'month');
+      return moment().startOf('month').subtract(1, 'month').toDate();
     case 'always':
       return 'always';
     default:
       // XXX: Moment tries to parse anything, results might be weird
-      return moment(inputDate, DATE_FORMAT);
+      return moment(inputDate, DATE_FORMAT).toDate();
   }
 }
 

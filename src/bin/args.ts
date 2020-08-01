@@ -3,7 +3,6 @@ import program from 'commander';
 import { Config } from '../types';
 import { defaultConfig } from '../config';
 import logger from '../logger';
-import packageJSON from '../../package.json';
 
 export function parseCommandLineArgs(): Partial<Config> {
   function int(val) {
@@ -11,7 +10,8 @@ export function parseCommandLineArgs(): Partial<Config> {
   }
 
   program
-    .version(packageJSON.version)
+    // eslint-disable-next-line
+    .version(require('../../package.json').version)
     .usage('[options]')
     .option(
       '-a, --authors [email@gmail.com]',

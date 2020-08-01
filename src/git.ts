@@ -87,7 +87,7 @@ export async function getCommitsForRepository({
 }
 
 function getAllReferences(repo: Repository): Promise<string[]> {
-  return repo.getReferenceNames(git.Reference.TYPE.ALL);
+  return repo.getReferenceNames(git.Reference.TYPE.LISTALL);
 }
 
 export async function getBranchLatestCommit(
