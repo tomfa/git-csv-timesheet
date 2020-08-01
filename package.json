@@ -47,7 +47,9 @@
     "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-react": "^7.14.2",
     "eslint-plugin-react-hooks": "^4.0.8",
+    "husky": "^4.2.5",
     "jest": "^26.2.2",
+    "lint-staged": "^10.2.11",
     "np": "^6.3.2",
     "prettier": "^2.0.5",
     "ts-jest": "^26.1.4",
@@ -62,5 +64,19 @@
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "compile": "rm -rf dist && tsc -b",
     "release": "yarn compile && np"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css}": [
+      "prettier --write",
+      "eslint --quiet --fix"
+    ],
+    "*.{json, md}": [
+      "prettier --write"
+    ]
   }
 }
