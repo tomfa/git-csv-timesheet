@@ -49,12 +49,14 @@ export function parseCommandLineArgs(): Partial<Config> {
       'Include merge requests into calculation. ' +
         ' Default: ' +
         defaultConfig.countMerges,
-      String,
+      parseBooleanArg,
     )
     .option(
       '-p, --path [git-repo]',
-      'Git repository to analyze.' + ' Default: ' + defaultConfig.gitPaths.join(' and '),
-      String,
+      'Git repository to analyze.' +
+        ' Default: ' +
+        defaultConfig.gitPaths.join(' and '),
+      parseArrayArg(','),
     )
     .option(
       '-b, --branch [branch-name]',
@@ -68,13 +70,13 @@ export function parseCommandLineArgs(): Partial<Config> {
         (defaultConfig.authors.length > 0
           ? defaultConfig.authors.join(',')
           : 'all'),
-      String,
+      parseArrayArg(','),
     )
     .option(
       '-i, --ignore-timesheetrc',
       'Ignores .timesheetrc fi;e from home directory. Default: ' +
         defaultConfig.ignoreConfigFile,
-      v => { console.log('IGNORE'); return true },
+      parseArgTrueIfSpecified
     );
 
   program.on('--help', function () {
@@ -120,18 +122,17 @@ export function parseCommandLineArgs(): Partial<Config> {
 
   program.parse(process.argv);
 
-  const authors: string[] = parseAuthorsArg(program.authors);
   const confArgs: Config = {
     maxCommitDiffInMinutes: program.maxCommitDiff,
     firstCommitAdditionInMinutes: program.firstCommitAdd,
     since: program.since,
     until: program.until,
-    gitPaths: program.path ? [program.path] : [],
+    gitPaths: program.path,
     countMerges: program.countMerges,
     branch: program.branch,
     emailAliases: parseEmailArg(process.argv),
     ignoreConfigFile: program.ignoreTimesheetrc,
-    authors,
+    authors: program.authors,
   };
 
   for (let [key, value] of Object.entries(confArgs)) {
@@ -174,15 +175,8 @@ function parseEmailArg(argv: string[]): EmailAliases {
   return aliases;
 }
 
-function parseAuthorsArg(authorArg: string | string[]): string[] {
-  if (authorArg instanceof Array) {
-    return authorArg;
-  }
-  if (!authorArg) {
-    return undefined;
-  }
-  return authorArg.split(',');
-}
-
 const parseBooleanArg = (value: string) =>
   value ? value.trim() === 'true' : undefined;
+const parseArrayArg = (separator: string) => (value: string) =>
+  value.trim() ? value.split(',').map((v) => v.trim()) : undefined;
+const parseArgTrueIfSpecified = () => true;

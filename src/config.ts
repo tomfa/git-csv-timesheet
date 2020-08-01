@@ -78,14 +78,16 @@ export function getConfig(overrides: Partial<Config>): Config {
   const config = { ...defaultConfig, ...homeDirConfig, ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);
-  if (config.repositories && config.gitPaths.length === 0) {
-    config.gitPaths = config.repositories.map(repo => {
-      if (typeof(repo) === 'string') {
-        return repo
+  if (homeDirConfig.repositories && !overrides.gitPaths) {
+    config.gitPaths = config.repositories.map((repo) => {
+      if (typeof repo === 'string') {
+        return repo;
       }
-      return repo.path
-    })
+      return repo.path;
+    });
   }
+
+  logger.debug('config', config)
   // TODO: Verify that each gitPath is a valid repository
   return config;
 }
