@@ -57,15 +57,14 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
-    "timesheet": "yarn compile && node ./dist/bin/timesheet.js",
     "test": "jest",
     "lint": "eslint ./src",
     "lint:no-warnings": "eslint ./src --quiet",
     "lint:prettier": "prettier --check \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "compile": "rm -rf dist && tsc -b",
-    "prepublish": "yarn compile",
-    "release": "yarn prepublish && np"
+    "prepublish": "yarn compile && cp package-dist.json ./dist/package.json",
+    "release": "yarn prepublish && np --contents=dist"
   },
   "husky": {
     "hooks": {
