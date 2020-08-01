@@ -1,4 +1,4 @@
-import program from 'commander';
+import * as program from 'commander';
 
 import { Config } from '../types';
 import { defaultConfig } from '../config';
@@ -8,10 +8,10 @@ export function parseCommandLineArgs(): Partial<Config> {
   function int(val) {
     return parseInt(val, 10);
   }
-
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+  const programVersion = require('../../package.json').version;
   program
-    // eslint-disable-next-line
-    .version(require('../../package.json').version)
+    .version(programVersion)
     .usage('[options]')
     .option(
       '-a, --authors [email@gmail.com]',

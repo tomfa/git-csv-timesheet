@@ -1,8 +1,9 @@
-import fs from 'fs';
+import * as fs from 'fs';
 
-import git, { Commit as GitCommit, Repository } from 'nodegit';
-import moment from 'moment';
+import * as git from 'nodegit';
+import * as moment from 'moment';
 
+import { Commit as GitCommit, Repository } from 'nodegit';
 import { Commit } from './types';
 import logger from './logger';
 
@@ -60,7 +61,7 @@ export async function getCommitsForRepository({
   const allReferences = await getAllReferences(repository);
   const references = allReferences.filter((r) => r.match(/refs\/heads\/.*/));
 
-  const allCommits = [];
+  const allCommits: Commit[] = [];
   const latestBranchCommits: GitCommit[] = await Promise.all(
     references.map((branchName) =>
       getBranchLatestCommit(repository, branchName),
@@ -71,7 +72,9 @@ export async function getCommitsForRepository({
       getBranchCommits({ latestCommit, since, until, repository }),
     ),
   );
-  branchCommits.forEach((c) => allCommits.push(c));
+  branchCommits.forEach((commitList) =>
+    commitList.forEach((commit) => allCommits.push(commit)),
+  );
 
   // Multiple branches might share commits, so take unique
   const uniqueCommits = allCommits.filter(
@@ -87,7 +90,9 @@ export async function getCommitsForRepository({
 }
 
 function getAllReferences(repo: Repository): Promise<string[]> {
-  return repo.getReferenceNames(git.Reference.TYPE.LISTALL);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return repo.getReferenceNames(git.Reference.TYPE.ALL);
 }
 
 export async function getBranchLatestCommit(
