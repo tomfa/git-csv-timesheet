@@ -2,9 +2,7 @@
 
 > Logging hours? No thanks. Let git-csv-timesheet estimate time spent and print out a csv.
 
-<p align="center">
-  <img width="340" src="https://unsplash.com/photos/dhZtNlvNE8M/download?force=true&w=640">
-</p>
+![Photo by Malvestida Magazine on Unsplash](https://github.com/tomfa/git-csv-timesheet/raw/master/docs/splash.jpg)
 
 ## Install
 
