@@ -42,6 +42,7 @@ export type Config = {
   authors: Array<string>;
   emailAliases: EmailAliases;
   branch: string | null;
+  ignoreConfigFile: boolean;
 };
 
 export type HomeDirectoryConfig = {

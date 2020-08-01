@@ -30,7 +30,8 @@ export const defaultConfig: Config = {
     'linus@torvalds.com': 'linus@linux.com',
   },
   branch: null,
-  authors: []
+  authors: [],
+  ignoreConfigFile: false,
 };
 
 function parseInputDate(inputDate: string | Date): Date | 'always' {
@@ -69,7 +70,11 @@ function getHomeDirectoryConfig(): Partial<HomeDirectoryConfig> {
 }
 
 export function getConfig(overrides: Partial<Config>): Config {
-  const homeDirConfig = getHomeDirectoryConfig();
+  const ignoreConfigFile =
+    overrides.ignoreConfigFile === true ||
+    (overrides.ignoreConfigFile === undefined &&
+      defaultConfig.ignoreConfigFile === true);
+  const homeDirConfig = ignoreConfigFile ? {} : getHomeDirectoryConfig();
   const config = { ...defaultConfig, ...homeDirConfig, ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);

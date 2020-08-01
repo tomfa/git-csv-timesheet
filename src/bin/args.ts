@@ -69,6 +69,12 @@ export function parseCommandLineArgs(): Partial<Config> {
           ? defaultConfig.authors.join(',')
           : 'all'),
       String,
+    )
+    .option(
+      '-i, --ignore-timesheetrc',
+      'Ignores .timesheetrc fi;e from home directory. Default: ' +
+        defaultConfig.ignoreConfigFile,
+      v => { console.log('IGNORE'); return true },
     );
 
   program.on('--help', function () {
@@ -120,12 +126,11 @@ export function parseCommandLineArgs(): Partial<Config> {
     firstCommitAdditionInMinutes: program.firstCommitAdd,
     since: program.since,
     until: program.until,
-    gitPaths: program.path ? [program.path]: [],
-    countMerges: !program.countMerges
-      ? undefined
-      : program.countMerges === 'true',
+    gitPaths: program.path ? [program.path] : [],
+    countMerges: program.countMerges,
     branch: program.branch,
     emailAliases: parseEmailArg(process.argv),
+    ignoreConfigFile: program.ignoreTimesheetrc,
     authors,
   };
 
@@ -178,3 +183,6 @@ function parseAuthorsArg(authorArg: string | string[]): string[] {
   }
   return authorArg.split(',');
 }
+
+const parseBooleanArg = (value: string) =>
+  value ? value.trim() === 'true' : undefined;
