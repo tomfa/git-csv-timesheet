@@ -34,9 +34,9 @@ export function parseCommandLineArgs(): Partial<Config> {
       String,
     )
     .option(
-      '-e, --email [emailOther=emailMain]',
+      '-e, --email [emailOther=emailMain,emailSecondary=emailMail]',
       'Group person by email address.' + ' Default: none',
-      String,
+      parseDictArg(',', '='),
     )
     .option(
       '-u, --until [until-certain-date]',
@@ -131,7 +131,7 @@ export function parseCommandLineArgs(): Partial<Config> {
     repositories: program.repositories,
     countMerges: program.countMerges,
     branch: program.branch,
-    emailAliases: parseEmailArg(process.argv),
+    emailAliases: program.email,
     ignoreConfigFile: program.ignoreTimesheetrc,
     authors: program.authors,
   };
@@ -145,39 +145,32 @@ export function parseCommandLineArgs(): Partial<Config> {
   return confArgs;
 }
 
-function parseEmailArg(argv: string[]): EmailAliases {
-  // Poor man`s multiple args support
-  // https://github.com/tj/commander.js/issues/531
-  const aliases = {};
-  const addToAliases = (aliasInput: string): void => {
-    if (aliasInput.indexOf('=') > 0) {
-      const email = aliasInput.substring(0, aliasInput.indexOf('=')).trim();
-      const alias = aliasInput.substring(aliasInput.indexOf('=') + 1).trim();
-      aliases[email] = alias;
-      return;
-    }
-    logger.error('ERROR: Invalid alias: ' + aliasInput);
-  };
-  for (let i = 0; i < argv.length; i++) {
-    const k = argv[i];
-    let n = i <= argv.length - 1 ? argv[i + 1] : undefined;
-    if (k == '-e' || k == '--email') {
-      addToAliases(n);
-    } else if (k.startsWith('--email=')) {
-      n = k.substring(k.indexOf('=') + 1);
-      addToAliases(n);
-    }
-  }
-
-  if (Object.keys(aliases).length === 0) {
-    return undefined;
-  }
-
-  return aliases;
-}
-
 const parseBooleanArg = (value: string) =>
   value ? value.trim() === 'true' : undefined;
 const parseArrayArg = (separator: string) => (value: string) =>
   value.trim() ? value.split(',').map((v) => v.trim()) : undefined;
+const parseDictArg = (separator: string, keyValueSeparator: string) => (
+  argumentValue: string,
+) => {
+  if (!argumentValue) {
+    return undefined;
+  }
+  const map = argumentValue.split(separator).reduce((aliasMap, singleAlias) => {
+    const [key, value] = singleAlias.split(keyValueSeparator);
+    if (!value) {
+      logger.error(
+        `Argument ${argumentValue} is invalid.`,
+        `Part "${singleAlias}" is missing a "${keyValueSeparator}".`,
+      );
+    } else {
+      aliasMap[key] = value;
+    }
+    return aliasMap;
+  }, {});
+
+  if (Object.keys(map).length === 0) {
+    return undefined;
+  }
+  return map;
+};
 const parseArgTrueIfSpecified = () => true;
