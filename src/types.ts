@@ -38,7 +38,7 @@ export type Config = {
   since: string | Date;
   until: string | Date;
   countMerges: boolean;
-  gitPaths: string[];
+  repositories: Array<string | RepositoryConfig>;
   authors: Array<string>;
   emailAliases: EmailAliases;
   branch: string | null;

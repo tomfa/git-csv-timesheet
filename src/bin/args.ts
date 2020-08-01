@@ -53,10 +53,10 @@ export function parseCommandLineArgs(): Partial<Config> {
       parseBooleanArg,
     )
     .option(
-      '-p, --path [git-repo]',
-      'Git repository to analyze.' +
+      '-r, --repositories [path,other-path]',
+      'Git repositories to analyze.' +
         ' Default: ' +
-        defaultConfig.gitPaths.join(' and '),
+        defaultConfig.repositories.join(' and '),
       parseArrayArg(','),
     )
     .option(
@@ -128,7 +128,7 @@ export function parseCommandLineArgs(): Partial<Config> {
     firstCommitAdditionInMinutes: program.firstCommitAdd,
     since: program.since,
     until: program.until,
-    gitPaths: program.path,
+    repositories: program.repositories,
     countMerges: program.countMerges,
     branch: program.branch,
     emailAliases: parseEmailArg(process.argv),
