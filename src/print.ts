@@ -34,7 +34,13 @@ const flattenSummary = (summary: CompleteSummary): FlatSummaryItem[] => {
       });
     });
   });
-  return flatSummary.sort(getSortByKeysFilter(PrintColumn.DATE));
+  return flatSummary.sort(
+    getSortByKeysFilter(
+      PrintColumn.AUTHOR,
+      PrintColumn.DATE,
+      PrintColumn.REPOSITORY,
+    ),
+  );
 };
 const DEFAULT_PRINT_LINES = [
   PrintColumn.AUTHOR,
