@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import { getConfig } from '../config';
-import { parseCommandLineArgs } from './args';
 import { analyzeTimeSpent } from '../analyzer';
 import { printAsCSV, printAsJSON } from '../print';
 import logger from '../logger';
+import { parseCommandLineArgs } from './args';
 
 const printReport = () => {
   const commandLineArgs = parseCommandLineArgs();

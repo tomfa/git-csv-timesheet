@@ -1,8 +1,9 @@
+import program from 'commander';
+
 import { Config } from '../types';
 import { defaultConfig } from '../config';
 import logger from '../logger';
-
-const program = require('commander');
+import packageJSON from '../../package.json';
 
 export function parseCommandLineArgs(): Partial<Config> {
   function int(val) {
@@ -10,7 +11,7 @@ export function parseCommandLineArgs(): Partial<Config> {
   }
 
   program
-    .version(require('../../package.json').version)
+    .version(packageJSON.version)
     .usage('[options]')
     .option(
       '-a, --authors [email@gmail.com]',
@@ -64,27 +65,27 @@ export function parseCommandLineArgs(): Partial<Config> {
     .option(
       '-i, --ignore-timesheetrc',
       'Ignores .timesheetrc from home directory.' +
-      wrapInDefault(defaultConfig.ignoreConfigFile),
+        wrapInDefault(defaultConfig.ignoreConfigFile),
       parseArgTrueIfSpecified,
-    ).option(
-    '-j, --json',
-    'Reports in JSON format.' +
-    wrapInDefault(defaultConfig.json),
-    parseArgTrueIfSpecified,
-  ).option(
-    '-v --verbose',
-    'Prints extra stats' +
-    wrapInDefault(defaultConfig.verbose),
-    parseArgTrueIfSpecified,
-  ).option(
-    '-D --debug',
-    'Prints debug information' +
-    wrapInDefault(defaultConfig.debug),
-    parseArgTrueIfSpecified,
-  );
+    )
+    .option(
+      '-j, --json',
+      'Reports in JSON format.' + wrapInDefault(defaultConfig.json),
+      parseArgTrueIfSpecified,
+    )
+    .option(
+      '-v --verbose',
+      'Prints extra stats' + wrapInDefault(defaultConfig.verbose),
+      parseArgTrueIfSpecified,
+    )
+    .option(
+      '-D --debug',
+      'Prints debug information' + wrapInDefault(defaultConfig.debug),
+      parseArgTrueIfSpecified,
+    );
 
   program.on('--help', function () {
-    console.log(`
+    logger.output(`
 Examples:
 
   - Estimate hours of project
@@ -132,11 +133,11 @@ Examples:
     debug: program.debug,
   };
 
-  for (let [key, value] of Object.entries(confArgs)) {
+  Object.entries(confArgs).forEach(([key, value]) => {
     if (value === undefined) {
       delete confArgs[key];
     }
-  }
+  });
 
   return confArgs;
 }
@@ -158,10 +159,9 @@ const parseDictArg = (separator: string, keyValueSeparator: string) => (
         `Argument ${argumentValue} is invalid.`,
         `Part "${singleAlias}" is missing a "${keyValueSeparator}".`,
       );
-    } else {
-      aliasMap[key] = value;
+      return aliasMap;
     }
-    return aliasMap;
+    return { ...aliasMap, [key]: value };
   }, {});
 
   if (Object.keys(map).length === 0) {
@@ -178,6 +178,7 @@ const wrapInDefault = (value: any): string => {
     if (value.length === 0) {
       return '';
     }
+    // eslint-disable-next-line no-param-reassign
     value = value.join(',');
   }
   return `\n[default: ${value}]`;

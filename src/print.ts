@@ -1,5 +1,7 @@
+/* eslint-disable no-param-reassign */
+
 import { CompleteSummary } from './types';
-import logger from "./logger";
+import logger from './logger';
 
 const CSV_SEPARATOR = ';';
 const DECIMAL_POINTS_PRECISION = 1;
@@ -51,10 +53,14 @@ const DEFAULT_PRINT_LINES = [
   // PrintColumn.TASK,
   PrintColumn.HOURS,
 ];
-export const printAsCSV = ({ summary, columns = undefined }: PrintArgs) => {
+export const printAsCSV = ({
+  summary,
+  columns = undefined,
+}: PrintArgs): void => {
   if (columns) {
     throw Error('columns param not yet supported');
   }
+  // eslint-disable-next-line no-param-reassign
   columns = DEFAULT_PRINT_LINES;
   if (getRepositories(summary).length === 1) {
     columns = columns.filter((c) => c !== PrintColumn.REPOSITORY);
@@ -86,10 +92,12 @@ const getSortByKeysFilter = (
   a: Record<string, string | number>,
   b: Record<string, string | number>,
 ) => number) => (a, b) => {
+  // eslint-disable-next-line no-restricted-syntax
   for (const key of keys) {
     if (a[key] > b[key]) {
       return 1;
-    } else if (a[key] < b[key]) {
+    }
+    if (a[key] < b[key]) {
       return -1;
     }
   }
@@ -99,8 +107,8 @@ const getRepositories = (summary: CompleteSummary): string[] => {
   return Object.keys(summary);
 };
 const getAuthors = (summary: CompleteSummary): string[] => {
-  const authorSet = Object.values(summary).reduce((authors, summary) => {
-    Object.keys(summary).forEach((author) => authors.add(author));
+  const authorSet = Object.values(summary).reduce((authors, authorSummary) => {
+    Object.keys(authorSummary).forEach((author) => authors.add(author));
     return authors;
   }, new Set<string>());
   return Array.from(authorSet);

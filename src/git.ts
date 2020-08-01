@@ -1,10 +1,10 @@
-import { Commit as GitCommit, Repository } from 'nodegit';
-const git = require('nodegit');
-const moment = require('moment');
-const fs = require('fs');
+import fs from 'fs';
+
+import git, { Commit as GitCommit, Repository } from 'nodegit';
+import moment from 'moment';
 
 import { Commit } from './types';
-import logger from "./logger";
+import logger from './logger';
 
 export function isShallowGitRepo(path: string): boolean {
   return fs.existsSync(path + '.git/shallow');
@@ -20,7 +20,7 @@ export async function getCommits({
   countMerges: boolean;
   since: string | Date;
   until: string | Date;
-}) {
+}): Promise<Commit[]> {
   const listOfCommitLists: Commit[][] = await Promise.all(
     gitPaths.map(async (path) =>
       getCommitsForRepository({
@@ -31,10 +31,10 @@ export async function getCommits({
       }),
     ),
   );
-  return listOfCommitLists.reduce((flattenedList, currentList) => {
-    flattenedList = [...flattenedList, ...currentList];
-    return flattenedList;
-  }, []);
+  return listOfCommitLists.reduce(
+    (flattenedList, currentList) => [...flattenedList, ...currentList],
+    [],
+  );
 }
 
 export async function getCommitsForRepository({
@@ -58,7 +58,7 @@ export async function getCommitsForRepository({
 
   const repository: Repository = await git.Repository.open(gitPath);
   const allReferences = await getAllReferences(repository);
-  const references = allReferences.filter((r) => r.match(/refs\/heads\/.*/));;
+  const references = allReferences.filter((r) => r.match(/refs\/heads\/.*/));
 
   const allCommits = [];
   const latestBranchCommits: GitCommit[] = await Promise.all(
@@ -66,19 +66,17 @@ export async function getCommitsForRepository({
       getBranchLatestCommit(repository, branchName),
     ),
   );
-  for (const latestCommit of latestBranchCommits) {
-    // TODO: This is a sync loop with an parallelizable call. Make Promise?
-    const branchCommits = await getBranchCommits({
-      latestCommit,
-      since,
-      until,
-      repository,
-    });
-    branchCommits.forEach((c) => allCommits.push(c));
-  }
+  const branchCommits = await Promise.all(
+    latestBranchCommits.map((latestCommit) =>
+      getBranchCommits({ latestCommit, since, until, repository }),
+    ),
+  );
+  branchCommits.forEach((c) => allCommits.push(c));
 
   // Multiple branches might share commits, so take unique
-  const uniqueCommits = allCommits.filter(generateUniquesBasedOnKeyFilter('sha'));
+  const uniqueCommits = allCommits.filter(
+    generateUniquesBasedOnKeyFilter('sha'),
+  );
 
   if (countMerges) {
     return uniqueCommits;
@@ -96,9 +94,8 @@ export async function getBranchLatestCommit(
   repo: Repository,
   branchName: string,
 ): Promise<GitCommit> {
-  return await repo.getBranch(branchName).then(function (reference) {
-    return repo.getBranchCommit(reference.name());
-  });
+  const branch = await repo.getBranch(branchName);
+  return repo.getBranchCommit(branch.name());
 }
 
 export async function getBranchCommits({
@@ -113,13 +110,14 @@ export async function getBranchCommits({
   until: string | Date;
 }): Promise<Commit[]> {
   if (!repository) {
+    // eslint-disable-next-line no-param-reassign
     repository = latestCommit.owner();
   }
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     const history = latestCommit.history();
     const commits = [];
 
-    history.on('commit', function (commit) {
+    history.on('commit', (commit) => {
       const commitAuthor = commit.author();
       const author = commitAuthor
         ? { name: commitAuthor.name(), email: commitAuthor.email() }
@@ -153,11 +151,11 @@ export async function getBranchCommits({
 
 const generateUniquesBasedOnKeyFilter = (key: string) => {
   const uniques = new Set();
-  return (item => {
+  return (item) => {
     const alreadyAdded = uniques.has(item[key]);
     if (!alreadyAdded) {
       uniques.add(item[key]);
     }
     return !alreadyAdded;
-  })
+  };
 };

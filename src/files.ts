@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+import fs = require('fs');
+import path = require('path');
 
 export const getHomeDir = (): string =>
-  process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
+  process.platform === 'win32' ? process.env.USERPROFILE : process.env.HOME;
 
 export const readJSON = (
   absolutPath: string,

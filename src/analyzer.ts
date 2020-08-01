@@ -15,7 +15,7 @@ export async function getCommitSummaries(
 ): Promise<{ [email: string]: CommitSummary }> {
   const { repositories, countMerges, since, until } = config;
   const allCommits = await git.getCommits({
-    gitPaths: repositories.map(r => typeof(r) === 'string' ? r : r.path),
+    gitPaths: repositories.map((r) => (typeof r === 'string' ? r : r.path)),
     countMerges,
     since,
     until,
@@ -27,6 +27,7 @@ export async function getCommitSummaries(
       email = config.emailAliases[email];
     }
     if (!map[email]) {
+      // eslint-disable-next-line no-param-reassign
       map[email] = [];
     }
     map[email].push(commit);
@@ -39,7 +40,7 @@ export async function getCommitSummaries(
       }
     });
   }
-  Object.keys(commitsByEmail).map((email) => {
+  Object.keys(commitsByEmail).forEach((email) => {
     const commits = commitsByEmail[email];
     commitsByEmail[email] = {
       commits,
@@ -121,7 +122,7 @@ export function getUserContribution({
     addCommitData(diffInMinutes, commit.repo, commit.date);
   });
 
-  const author = sortedCommits[0].author;
+  const { author } = sortedCommits[0];
   logger.verbose(
     `\n ${author.name} (${author.email}) had\n`,
     `${numSessionsDetected} sessions constructed using\n`,

@@ -1,8 +1,7 @@
+import moment  from 'moment';
+
 import { Config, HomeDirectoryConfig } from './types';
 import { readHomeDirectoryConfig } from './files';
-import logger from './logger';
-
-const moment = require('moment');
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 

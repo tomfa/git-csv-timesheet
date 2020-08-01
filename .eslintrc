@@ -1,0 +1,29 @@
+{
+  "env": { "node": true },
+  "extends": ["@askeladden/eslint-config-askeladden/typescript-recommended"],
+"rules": {
+    "import/extensions": 0,
+    "prefer-template": 0,
+    //"class-methods-use-this": 0,
+    "@typescript-eslint/no-inferrable-types": 0,
+    //"@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/no-unused-vars": 1,
+    "@typescript-eslint/no-empty-function": 0,
+    "@typescript-eslint/ban-types": 0,
+    "no-console": 2,
+    "import/no-extraneous-dependencies": [
+      "error",
+      { "devDependencies": ["**/*.test.ts", "**/*.spec.ts"] }
+    ],
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": false,
+        "variables": false
+      }
+    ],
+    // Prettier errors are fixed automatically, do not need linting hints in IDE
+    "prettier/prettier": 0
+  },
+}
