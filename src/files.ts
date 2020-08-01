@@ -5,10 +5,10 @@ export const getHomeDir = (): string =>
   process.platform === 'win32' ? process.env.USERPROFILE : process.env.HOME;
 
 export const readJSON = (
-  absolutPath: string,
+  absolutePath: string,
   defaultData: Record<string, any> = {},
 ): Record<string, any> => {
-  const rawData = fs.readFileSync(absolutPath, 'utf8');
+  const rawData = fs.readFileSync(absolutePath, 'utf8');
   const data = JSON.parse(rawData);
   return { ...defaultData, ...data };
 };

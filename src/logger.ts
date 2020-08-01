@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 
-interface IO {
+export interface IO {
   debug: (...args: any) => void;
   verbose: (...args: any) => void;
   output: (...args: any) => void;

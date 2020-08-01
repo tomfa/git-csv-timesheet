@@ -1,4 +1,5 @@
-import * as types from './types';
-import { analyzeTimeSpent } from './analyzer';
+import * as analyzer from './analyzer';
+import * as git from './git';
+import logger from './logger';
 
-export { analyzeTimeSpent, types };
+export default { analyze: analyzer.analyzeTimeSpent, logger, analyzer, git };

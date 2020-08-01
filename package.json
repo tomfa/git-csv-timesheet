@@ -64,7 +64,8 @@
     "lint:prettier": "prettier --check \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "compile": "rm -rf dist && tsc -b",
-    "release": "yarn compile && np"
+    "prepublish": "yarn compile",
+    "release": "yarn prepublish && np"
   },
   "husky": {
     "hooks": {
