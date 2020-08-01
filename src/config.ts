@@ -1,5 +1,6 @@
 import { Config, HomeDirectoryConfig } from './types';
 import { readHomeDirectoryConfig } from './files';
+import logger from './logger';
 
 const moment = require('moment');
 
@@ -62,7 +63,7 @@ function parseInputDate(inputDate: string | Date): Date | 'always' {
 function getHomeDirectoryConfig(): Partial<HomeDirectoryConfig> {
   try {
     const config = readHomeDirectoryConfig(HOMEDIR_CONFIG_FILE_NAME);
-    console.log(`Using config from ${HOMEDIR_CONFIG_FILE_NAME}`);
+    logger.log(`Using config from ${HOMEDIR_CONFIG_FILE_NAME}`);
     return config;
   } catch (error) {
     return {};

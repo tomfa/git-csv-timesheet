@@ -22,6 +22,8 @@ type FlatSummaryItem = {
   [PrintColumn.REPOSITORY]: string;
 };
 
+const output = (...args: any[]) => console.log(...args);
+
 const flattenSummary = (summary: CompleteSummary): FlatSummaryItem[] => {
   const flatSummary = [] as FlatSummaryItem[];
   Object.keys(summary).forEach((repository) => {
@@ -62,22 +64,22 @@ export const printAsCSV = ({ summary, columns = undefined }: PrintArgs) => {
     columns = columns.filter((c) => c !== PrintColumn.AUTHOR);
   }
   const flatSummary = flattenSummary(summary).sort();
-  console.log(columns.join(CSV_SEPARATOR));
+  output(columns.join(CSV_SEPARATOR));
   flatSummary.forEach((summaryItem) => {
     const printValues = [];
     columns.forEach((column) => printValues.push(summaryItem[column]));
-    console.log(printValues.map(printColumnsString).join(CSV_SEPARATOR));
+    output(printValues.map(printColumnsString).join(CSV_SEPARATOR));
   });
   const totalHoursSpent = flatSummary.reduce(
     (timespent, item) => timespent + item.hours,
     0,
   );
-  console.log('-------------------');
-  console.log(`Total hours: ${totalHoursSpent.toFixed(1)}`);
+  output('-------------------');
+  output(`Total hours: ${totalHoursSpent.toFixed(1)}`);
 };
 
 export const printAsJSON = ({ summary, columns }: PrintArgs) => {
-  console.log(JSON.stringify(summary, undefined, 2));
+  output(JSON.stringify(summary, undefined, 2));
 };
 
 const getSortByKeysFilter = (

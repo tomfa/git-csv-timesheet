@@ -122,11 +122,13 @@ export function getUserContribution({
     addCommitData(diffInMinutes, commit.repo, commit.date);
   });
 
+  const author = sortedCommits[0].author;
   logger.log(
-    `\n ${numSessionsDetected} sessions were constructed using\n`,
+    `\n ${author.name} (${author.email}) had\n`,
+    `${numSessionsDetected} sessions constructed using\n`,
     `${sortedCommits.length} commits, made in\n`,
     `${repoSet.size} repositories, done on\n`,
-    `${isoDaySet.size} days.\n`,
+    `${isoDaySet.size} different days.\n`,
   );
 
   return repoSummary;

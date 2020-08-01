@@ -1,5 +1,6 @@
 import { Config, EmailAliases } from '../types';
 import { defaultConfig } from '../config';
+import logger from "../logger";
 
 const program = require('commander');
 
@@ -155,7 +156,7 @@ function parseEmailArg(argv: string[]): EmailAliases {
       aliases[email] = alias;
       return;
     }
-    console.error('ERROR: Invalid alias: ' + aliasInput);
+    logger.error('ERROR: Invalid alias: ' + aliasInput);
   };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];

@@ -4,6 +4,7 @@ const moment = require('moment');
 const fs = require('fs');
 
 import { Commit } from './types';
+import logger from "./logger";
 
 export function isShallowGitRepo(path: string): boolean {
   return fs.existsSync(path + '.git/shallow');
@@ -53,8 +54,8 @@ export async function getCommitsForRepository({
   until: string | Date;
 }): Promise<Commit[]> {
   if (isShallowGitRepo(gitPath)) {
-    console.log(`Cannot analyze shallow git repo: ${gitPath}!`);
-    console.log(
+    logger.warn(`Cannot analyze shallow git repo: ${gitPath}!`);
+    logger.warn(
       `To fix this issue: run git fetch --unshallow inside ${gitPath}`,
     );
     return [];
