@@ -7,7 +7,7 @@
 ## Install
 
 ```
-yarn add global git-csv-timesheet
+yarn global add git-csv-timesheet
 
 # or with npm
 
@@ -28,9 +28,15 @@ $ timesheet  \
   --since thismonth \
   --repositories /usr/repos/frontend,/usr/repos/backend
 date;hours
-2020-07-01;7.5
-2020-07-02;8
-2020-07-03;10
+2020-07-03;/usr/repos/frontend;1.4
+2020-07-05;/usr/repos/backend;1.7
+2020-07-06;/usr/repos/backend;2.7
+2020-07-09;/usr/repos/frontend;1.2
+2020-07-13;/usr/repos/frontend;3.2
+2020-07-16;/usr/repos/frontend;2.4
+2020-07-16;/usr/repos/backend;3.9
+2020-07-27;/usr/repos/frontend;2.0
+2020-07-28;/usr/repos/frontend;4.1
 
 # Write to file
 $ timesheet > report.csv
@@ -87,7 +93,7 @@ made by individual authors._
 
 <br>
 
-The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobrunfeldt/git-hours) and is about [30 lines of code](https://github.com/kimmobrunfeldt/git-hours/blob/8aaeee237cb9d9028e7a2592a25ad8468b1f45e4/index.js#L114-L143).
+_The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobrunfeldt/git-hours) and is about [30 lines of code](https://github.com/kimmobrunfeldt/git-hours/blob/8aaeee237cb9d9028e7a2592a25ad8468b1f45e4/index.js#L114-L143)_.
 
 ## Options
 
@@ -122,29 +128,29 @@ Options:
                                         [default: false]
   -h, --help                            display help for command
 
-  Examples:
+Examples:
 
-  - Estimate hours of project
+  # Estimate hours of project
 
    $ timesheet
 
-  - Estimate hours by me@example.com
+  # Estimate hours by me@example.com
 
    $ timesheet -a me@example.com
 
-  - Estimate hours where developers commit seldom
+  # Estimate hours where developers commit seldom
 
    $ timesheet --max-commit-diff 240
 
-  - Estimate hours in when working 5 hours before first commit of day
+  # Estimate hours in when working 5 hours before first commit of day
 
    $ timesheet --first-commit-add 300
 
-  - Estimate hours work this month
+  # Estimate hours work this month
 
    $ timesheet --since thismonth
 
-  - Estimate hours work until 2020-01-01
+  # Estimate hours work until 2020-01-01
 
    $ timesheet --until 2020-01-01
 ```
@@ -207,7 +213,7 @@ The config above will:
 - count merges as your commit (TODO: [#16](https://github.com/tomfa/git-csv-timesheet/issues/16))except for `/Users/tomfa/repos/backend`, where it's overriden)
 - TODO: [#17](https://github.com/tomfa/git-csv-timesheet/issues/10) count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/random-project`)
 - TODO: [#17](https://github.com/tomfa/git-csv-timesheet/issues/10) count 2 repos each for the two projects `Client 1"` and `Personal blog`.
-- TODO: [#16](https://github.com/tomfa/git-csv-timesheet/issues/16) [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) [for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
+- TODO: [#16](https://github.com/tomfa/git-csv-timesheet/issues/16) [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
 
 ### Task tracking
 
