@@ -1,4 +1,4 @@
-import moment  from 'moment';
+import moment from 'moment';
 
 import { Config, HomeDirectoryConfig } from './types';
 import { readHomeDirectoryConfig } from './files';
@@ -90,7 +90,8 @@ export function getConfig(
     overrides.ignoreConfigFile === true ||
     (overrides.ignoreConfigFile === undefined &&
       defaultConfig.ignoreConfigFile === true);
-  const { fileConfig, path } = !ignoreConfigFile && getHomeDirectoryConfig() || {};
+  const { fileConfig, path } =
+    (!ignoreConfigFile && getHomeDirectoryConfig()) || {};
   const config = { ...defaultConfig, ...(fileConfig || {}), ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);

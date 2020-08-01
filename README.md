@@ -98,6 +98,7 @@ _The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobr
 ## Options
 
 ### Advanced usage
+
 ```
 Usage: timesheet [options]
 
@@ -165,7 +166,7 @@ Options:
 
 ### .timesheetrc config
 
-By default, the repository parameter will check the current git repository. 
+By default, the repository parameter will check the current git repository.
 You can also summarize multiple repositories by specifying a config.
 
 ```bash
@@ -223,7 +224,7 @@ The config above will:
 
 ### Task tracking
 
-_TODO: [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) This feature  is not yet implemented._
+_TODO: [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) This feature is not yet implemented._
 
 If you need to specify what you've worked on (_I'm sorry_), [git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) can look for `#` in your commits to categorise work based on individual tasks.
 

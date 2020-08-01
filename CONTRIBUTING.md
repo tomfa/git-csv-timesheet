@@ -1,7 +1,6 @@
 # Contribution documentation
 
-Pull requests and contributions are warmly welcome. 
-
+Pull requests and contributions are warmly welcome.
 
 ## Get started with development
 
@@ -20,12 +19,10 @@ Install tools needed for development:
 
 ## Test
 
-
 Running tests:
 
     yarn test
 
 ## Release
-
 
     yarn release
