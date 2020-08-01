@@ -63,7 +63,7 @@
     "lint:prettier": "prettier --check \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "compile": "rm -rf dist && tsc -b",
-    "prepublish": "yarn compile && cp package-dist.json ./dist/package.json",
+    "prepublish": "yarn compile && cp package-dist.json ./dist/package.json && cp README.md ./dist/README.md",
     "release": "yarn prepublish && np --contents=dist"
   },
   "husky": {

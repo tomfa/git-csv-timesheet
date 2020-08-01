@@ -9,7 +9,7 @@ export function parseCommandLineArgs(): Partial<Config> {
     return parseInt(val, 10);
   }
   // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
-  const programVersion = '0.1.4';
+  const programVersion = '0.1.5';
   program
     .version(programVersion)
     .usage('[options]')
