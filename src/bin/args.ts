@@ -64,13 +64,28 @@ export function parseCommandLineArgs(): Partial<Config> {
     .option(
       '-i, --ignore-timesheetrc',
       'Ignores .timesheetrc from home directory.' +
-        wrapInDefault(defaultConfig.ignoreConfigFile),
+      wrapInDefault(defaultConfig.ignoreConfigFile),
       parseArgTrueIfSpecified,
-    );
+    ).option(
+    '-j, --json',
+    'Reports in JSON format.' +
+    wrapInDefault(defaultConfig.json),
+    parseArgTrueIfSpecified,
+  ).option(
+    '-v --verbose',
+    'Prints extra stats' +
+    wrapInDefault(defaultConfig.verbose),
+    parseArgTrueIfSpecified,
+  ).option(
+    '-D --debug',
+    'Prints debug information' +
+    wrapInDefault(defaultConfig.debug),
+    parseArgTrueIfSpecified,
+  );
 
   program.on('--help', function () {
     console.log(`
-  Examples:
+Examples:
 
   - Estimate hours of project
 
@@ -112,6 +127,9 @@ export function parseCommandLineArgs(): Partial<Config> {
     emailAliases: program.email,
     ignoreConfigFile: program.ignoreTimesheetrc,
     authors: program.authors,
+    json: program.json,
+    verbose: program.verbose,
+    debug: program.debug,
   };
 
   for (let [key, value] of Object.entries(confArgs)) {

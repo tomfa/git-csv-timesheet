@@ -27,11 +27,22 @@ export const defaultConfig: Config = {
   repositories: ['.'],
 
   // Aliases of emails for grouping the same activity as one person
-  emailAliases: {
-    'linus@torvalds.com': 'linus@linux.com',
-  },
+  emailAliases: {},
+
+  // Filters authors from output
   authors: [],
+
+  // Ignores .timesheetrc config files
   ignoreConfigFile: false,
+
+  // Logs stats found under parsing
+  verbose: false,
+
+  // Report with JSON instead of csv
+  json: false,
+
+  // Logs debug information
+  debug: false,
 };
 
 function parseInputDate(inputDate: string | Date): Date | 'always' {
@@ -59,30 +70,32 @@ function parseInputDate(inputDate: string | Date): Date | 'always' {
   }
 }
 
-function getHomeDirectoryConfig(): Partial<HomeDirectoryConfig> {
+function getHomeDirectoryConfig(): {
+  fileConfig: Partial<HomeDirectoryConfig>;
+  path: string | null;
+} {
   try {
-    const config = readHomeDirectoryConfig(HOMEDIR_CONFIG_FILE_NAME);
-    logger.log(`Using config from ${HOMEDIR_CONFIG_FILE_NAME}`);
-    return config;
+    return {
+      fileConfig: readHomeDirectoryConfig(HOMEDIR_CONFIG_FILE_NAME),
+      path: `~/${HOMEDIR_CONFIG_FILE_NAME}}`,
+    };
   } catch (error) {
-    return {};
+    return { fileConfig: {}, path: null };
   }
 }
 
-export function getConfig(overrides: Partial<Config>): Config {
+export function getConfig(
+  overrides: Partial<Config>,
+): { config: Config; configFilePath: string | null } {
   const ignoreConfigFile =
     overrides.ignoreConfigFile === true ||
     (overrides.ignoreConfigFile === undefined &&
       defaultConfig.ignoreConfigFile === true);
-  const homeDirConfig = ignoreConfigFile ? {} : getHomeDirectoryConfig();
-  logger.debug('defaultConfig', defaultConfig);
-  logger.debug('.timesheetrc', homeDirConfig);
-  logger.debug('.args', overrides);
-  const config = { ...defaultConfig, ...homeDirConfig, ...overrides };
+  const { fileConfig, path } = !ignoreConfigFile && getHomeDirectoryConfig() || {};
+  const config = { ...defaultConfig, ...(fileConfig || {}), ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);
 
-  logger.log('config', config);
   // TODO: Verify that each gitPath is a valid repository
-  return config;
+  return { config, configFilePath: path };
 }

@@ -1,4 +1,5 @@
 import { CompleteSummary } from './types';
+import logger from "./logger";
 
 const CSV_SEPARATOR = ';';
 const DECIMAL_POINTS_PRECISION = 1;
@@ -21,8 +22,6 @@ type FlatSummaryItem = {
   [PrintColumn.HOURS]: number;
   [PrintColumn.REPOSITORY]: string;
 };
-
-const output = (...args: any[]) => console.log(...args);
 
 const flattenSummary = (summary: CompleteSummary): FlatSummaryItem[] => {
   const flatSummary = [] as FlatSummaryItem[];
@@ -64,22 +63,21 @@ export const printAsCSV = ({ summary, columns = undefined }: PrintArgs) => {
     columns = columns.filter((c) => c !== PrintColumn.AUTHOR);
   }
   const flatSummary = flattenSummary(summary).sort();
-  output(columns.join(CSV_SEPARATOR));
+  logger.output(columns.join(CSV_SEPARATOR));
   flatSummary.forEach((summaryItem) => {
     const printValues = [];
     columns.forEach((column) => printValues.push(summaryItem[column]));
-    output(printValues.map(printColumnsString).join(CSV_SEPARATOR));
+    logger.output(printValues.map(printColumnsString).join(CSV_SEPARATOR));
   });
   const totalHoursSpent = flatSummary.reduce(
     (timespent, item) => timespent + item.hours,
     0,
   );
-  output('-------------------');
-  output(`Total hours: ${totalHoursSpent.toFixed(1)}`);
+  logger.verbose(`\nTotal hours: ${totalHoursSpent.toFixed(1)}`);
 };
 
 export const printAsJSON = ({ summary, columns }: PrintArgs) => {
-  output(JSON.stringify(summary, undefined, 2));
+  logger.output(JSON.stringify(summary, undefined, 2));
 };
 
 const getSortByKeysFilter = (

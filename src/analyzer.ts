@@ -111,7 +111,7 @@ export function getUserContribution({
       const { date, time } = getDateInfo(lastTimeStamp);
       const pauseLength = Math.round(diffInMinutes);
       numSessionsDetected += 1;
-      logger.debug(
+      logger.verbose(
         `${pauseLength} minutes diff until ${date} ${time}`,
         `– session starts.`,
       );
@@ -122,7 +122,7 @@ export function getUserContribution({
   });
 
   const author = sortedCommits[0].author;
-  logger.log(
+  logger.verbose(
     `\n ${author.name} (${author.email}) had\n`,
     `${numSessionsDetected} sessions constructed using\n`,
     `${sortedCommits.length} commits, made in\n`,

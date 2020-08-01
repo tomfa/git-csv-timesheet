@@ -126,31 +126,37 @@ Options:
   -i, --ignore-timesheetrc              Ignores .timesheetrc from home
                                         directory.
                                         [default: false]
+  -j, --json                            Reports in JSON format.
+                                        [default: false]
+  -v --verbose                          Prints extra stats
+                                        [default: false]
+  -D --debug                            Prints debug information
+                                        [default: false]
   -h, --help                            display help for command
 
-Examples:
+  Examples:
 
-  # Estimate hours of project
+  - Estimate hours of project
 
    $ timesheet
 
-  # Estimate hours by me@example.com
+  - Estimate hours by me@example.com
 
    $ timesheet -a me@example.com
 
-  # Estimate hours where developers commit seldom
+  - Estimate hours where developers commit seldom
 
    $ timesheet --max-commit-diff 240
 
-  # Estimate hours in when working 5 hours before first commit of day
+  - Estimate hours in when working 5 hours before first commit of day
 
    $ timesheet --first-commit-add 300
 
-  # Estimate hours work this month
+  - Estimate hours work this month
 
    $ timesheet --since thismonth
 
-  # Estimate hours work until 2020-01-01
+  - Estimate hours work until 2020-01-01
 
    $ timesheet --until 2020-01-01
 ```
