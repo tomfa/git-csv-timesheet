@@ -11,10 +11,10 @@ export const HOMEDIR_CONFIG_FILE_NAME = '.timesheetrc';
 export const defaultConfig: Config = {
   // Maximum time diff between 2 subsequent commits in minutes which are
   // counted to be in the same coding "session"
-  maxCommitDiffInMinutes: 2 * 60,
+  maxCommitDiffInMinutes: 3 * 60,
 
   // How many minutes should be added for the first commit of coding session
-  firstCommitAdditionInMinutes: 2 * 60,
+  firstCommitAdditionInMinutes: 60,
 
   // Include commits since time x
   since: 'always',
@@ -76,11 +76,14 @@ export function getConfig(overrides: Partial<Config>): Config {
     (overrides.ignoreConfigFile === undefined &&
       defaultConfig.ignoreConfigFile === true);
   const homeDirConfig = ignoreConfigFile ? {} : getHomeDirectoryConfig();
+  logger.debug('defaultConfig', defaultConfig);
+  logger.debug('.timesheetrc', homeDirConfig);
+  logger.debug('.args', overrides);
   const config = { ...defaultConfig, ...homeDirConfig, ...overrides };
   config.since = parseInputDate(config.since);
   config.until = parseInputDate(config.until);
 
-  logger.debug('config', config)
+  logger.log('config', config);
   // TODO: Verify that each gitPath is a valid repository
   return config;
 }

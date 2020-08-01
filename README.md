@@ -19,7 +19,16 @@ npm install -g git-csv-timesheet
 ## Basic usage
 
 ```bash
-$ timesheet
+$ timesheet --authors me@example.com --since thismonth
+date;hours
+2020-07-01;7.5
+2020-07-02;8
+2020-07-03;10
+
+$ timesheet  \
+  --authors me@example.com \
+  --since thismonth \
+  --repositories /usr/repos/frontend,/usr/repos/backend
 date;hours
 2020-07-01;7.5
 2020-07-02;8
@@ -85,90 +94,75 @@ The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobru
 ## Options
 
 ### Advanced usage
+```
+Usage: timesheet [options]
 
-    Usage: timesheet [options]
+Options:
+  -V, --version                         output the version number
+  -a, --authors [email@gmail.com]       Only care about commits from these
+                                        emails.
+  -d, --max-commit-diff [minutes]       max minutes between commits counted as
+                                        one session.
+                                        [default: 180]
+  -f, --first-commit-add [minutes]      how many minutes first commit of
+                                        session should add to total.
+                                        [default: 60]
+  -s, --since [date]                    Analyze data since date (including).
+                                        [today|lastweek|thismonth|yyyy-mm-dd]
+                                        [default: always]
+  -u, --until [date]                    Analyze data until date (excluding).
+                                        [today|lastweek|thismonth|yyyy-mm-dd]
+                                        [default: always]
+  -r, --repositories [path,other-path]  Git repositories to analyze.
+                                        [default: .]
+  -e, --email [emailOther=emailMain]    Group person by email.
+  -m, --merge-request [false|true]      Include merge requests into
+                                        calculation.
+                                        [default: true]
+  -b, --branch [branch-name]            Analyze only data on the specified
+                                        branch.
+                                        [default: null]
+  -i, --ignore-timesheetrc              Ignores .timesheetrc from home
+                                        directory.
+                                        [default: false]
+  -h, --help                            display help for command
 
-    Options:
-      -h, --help                                 output usage information
-      -V, --version                              output the version number
-      -c, --config=[path-to-config]              reads config from this path
-      -f, --from=[YYYY-MM-DD]                    counts commits from this date (including)
-      -t, --to=[YYYY-MM-DD]                      counts commits from to date (excluding)
-      -M, --month=[1...12]                       counts commits from this month (defaults to current month, unless year is specified. can not be used with week, from or to)
-      -Y, --year=[YYYY]                          counts commits from this year (defaults to current year)
-      -W, --week=[1-53]                          counts commits from this week (can not be used with month, from or to)
-      -T, --tasks                                splits usage inside repository based on #task references.
-      -d, --max-commit-diff=[max-commit-diff]    maximum difference in minutes between commits counted to one session. Default: 120
-      -a, --first-commit-add=[first-commit-add]  how many minutes first commit of session should add to total. Default: 120
-      -m, --merge-request=[false|true]           Include merge requests into calculation.  Default: true
+  Examples:
 
-    Examples:
+  - Estimate hours of project
 
-     - Estimate hours of project
+   $ timesheet
 
-       $ timesheet
+  - Estimate hours by me@example.com
 
-     - Estimate hours in repository where developers commit more seldom: they might have 4h(240min) pause between commits
+   $ timesheet -a me@example.com
 
-       $ timesheet --max-commit-diff 240
+  - Estimate hours where developers commit seldom
 
-     - Estimate hours in repository where developer works 5 hours before first commit in day
+   $ timesheet --max-commit-diff 240
 
-       $ timesheet --first-commit-add 300
+  - Estimate hours in when working 5 hours before first commit of day
 
-    - Estimate hours betwen two dates
+   $ timesheet --first-commit-add 300
 
-       $ timesheet --from=2020-01-03 --to=2020-03-05
+  - Estimate hours work this month
 
-    - Estime hours for a certain month
+   $ timesheet --since thismonth
 
-       $ timesheet --month=1
+  - Estimate hours work until 2020-01-01
 
-    - Estime hours spent on each task
-
-       $ timesheet --tasks
-
-    - Estimate hours work in repository on the "master" branch
-
-       $ timesheet --branch master
-
-### Time range
-
-[git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) will by default print out time spent this month in the current repository.
-You can override the time frame with `--week`, `--month`, `--year`, `--from` and `--to` or `--all`.
-
-```bash
-# Prints current week
-timesheet --week
-
-# Prints week 36 in this year
-timesheet --week=36
-
-# Prints february of this year
-timesheet --month=2
-
-# Prints current year
-timesheet --year
-
-# Prints whole of 2019
-timesheet --year=2019
-
-# Prints between 3rd of Jan  -> 5th of Mar (YYYY-MM-DD)
-# This includes whole of 2020-01-03, but NOT 2020-03-05
-timesheet --from=2020-01-03 --to=2020-03-05
-
-# Prints data for all time up to today
-timesheet --all
+   $ timesheet --until 2020-01-01
 ```
 
 ## Config
 
 ### .timesheetrc config
 
-By default, the command will check the current git repository. You can also summarize multiple repositories by specifying a config.
+By default, the repository parameter will check the current git repository. 
+You can also summarize multiple repositories by specifying a config.
 
 ```bash
-➜  git:(master) timesheet --week --config=~/.timesheetrc
+➜  git:(master) timesheet --week --config ~/.timesheetrc
 date;project;repository;hours
 2020-07-27;Personal blog;@tomfa/notes;3.5
 2020-07-27;Personal blog;@tomfa/notes-frontend;1
@@ -215,17 +209,19 @@ The config above will:
 - count commits made by "me@gmail.com" and "me@oldworkplace.com" towards the author "me@companymail.com"
 - add 60 minutes before first commits (for a day)
 - "glue together" commits that are less than 2 hours between.
-- count merges as your commit (except for `/Users/tomfa/repos/backend`, where it's overriden)
-- count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/random-project`)
-- count 2 repos each for the two projects `Client 1"` and `Personal blog`.
-- for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
+- count merges as your commit (TODO: [#16](https://github.com/tomfa/git-csv-timesheet/issues/16))except for `/Users/tomfa/repos/backend`, where it's overriden)
+- TODO: [#17](https://github.com/tomfa/git-csv-timesheet/issues/10) count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/random-project`)
+- TODO: [#17](https://github.com/tomfa/git-csv-timesheet/issues/10) count 2 repos each for the two projects `Client 1"` and `Personal blog`.
+- TODO: [#16](https://github.com/tomfa/git-csv-timesheet/issues/16) [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) [for the two `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
 
 ### Task tracking
+
+_TODO: [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) This feature  is not yet implemented._
 
 If you need to specify what you've worked on (_I'm sorry_), [git-csv-timesheet](https://github.comt/tomfa/git-csv-timesheet) can look for `#` in your commits to categorise work based on individual tasks.
 
 ```bash
-> timesheet --week --config=~/.timesheetrc --tasks
+> timesheet --week --config ~/.timesheetrc --tasks
 date;project;repository;task;hours
 2020-07-27;Personal blog;@tomfa/notes;#14;1.5
 2020-07-27;Personal blog;@tomfa/notes;#13;2.5
