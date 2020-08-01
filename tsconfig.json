@@ -5,7 +5,8 @@
     "target": "es5",
     "noEmitOnError": false,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true
   },
   "include": ["./src/**/*"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"]

@@ -3,6 +3,7 @@
   "version": "0.0.2",
   "description": "Generate a CSV timesheet from your git repositories",
   "main": "./dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "timesheet": "./dist/bin/timesheet.js"
   },
