@@ -167,18 +167,7 @@ Options:
 ### .timesheetrc config
 
 By default, the repository parameter will check the current git repository.
-You can also summarize multiple repositories by specifying a config.
-
-```bash
-➜  git:(master) timesheet --week --config ~/.timesheetrc
-date;project;repository;hours
-2020-07-27;Personal blog;@tomfa/notes;3.5
-2020-07-27;Personal blog;@tomfa/notes-frontend;1
-2020-07-27;Client 1;@client/dashboard;3
-2020-07-28;Client 1;@client/app;8
-2020-07-28;Client 1;client/backend;2
-# etc
-```
+You can also summarize multiple repositories by adding a config file to your home folder.
 
 The config has the following structure:
 
@@ -221,6 +210,21 @@ The config above will:
 - TODO: [#17](https://github.com/tomfa/git-csv-timesheet/issues/10) count 1 repo for a "Unspecified" project (`/Users/tomfa/repos/random-project`)
 - TODO: [#17](https://github.com/tomfa/git-csv-timesheet/issues/10) count 2 repos each for the two projects `Client 1"` and `Personal blog`.
 - TODO: [#16](https://github.com/tomfa/git-csv-timesheet/issues/16) [#10](https://github.com/tomfa/git-csv-timesheet/issues/10) `Client 1` repos: it will split up the work into tasks specified in commits (see below.)
+
+With the above config located at `~/.timesheetrc`, the script will run from anywhere with the same output: 
+
+```bash
+➜ timesheet --week
+date;project;repository;hours
+2020-07-27;Personal blog;@tomfa/notes;3.5
+2020-07-27;Personal blog;@tomfa/notes-frontend;1
+2020-07-27;Client 1;@client/dashboard;3
+2020-07-28;Client 1;@client/app;8
+2020-07-28;Client 1;client/backend;2
+# etc
+```
+
+If you have a config in `~/.timesheetrc`, and you do not wish to use it, pass the `-i` flag to ignore the config file.
 
 ### Task tracking
 
