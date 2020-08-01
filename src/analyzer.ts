@@ -13,10 +13,9 @@ import {
 export async function getCommitSummaries(
   config: Config,
 ): Promise<{ [email: string]: CommitSummary }> {
-  const { repositories, branch, countMerges, since, until } = config;
+  const { repositories, countMerges, since, until } = config;
   const allCommits = await git.getCommits({
     gitPaths: repositories.map(r => typeof(r) === 'string' ? r : r.path),
-    branch,
     countMerges,
     since,
     until,

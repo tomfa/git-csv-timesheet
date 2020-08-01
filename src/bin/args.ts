@@ -62,12 +62,6 @@ export function parseCommandLineArgs(): Partial<Config> {
       parseBooleanArg,
     )
     .option(
-      '-b, --branch [branch-name]',
-      'Analyze only data on the specified branch.' +
-        wrapInDefault(defaultConfig.branch),
-      String,
-    )
-    .option(
       '-i, --ignore-timesheetrc',
       'Ignores .timesheetrc from home directory.' +
         wrapInDefault(defaultConfig.ignoreConfigFile),
@@ -115,7 +109,6 @@ export function parseCommandLineArgs(): Partial<Config> {
     until: program.until,
     repositories: program.repositories,
     countMerges: program.countMerges,
-    branch: program.branch,
     emailAliases: program.email,
     ignoreConfigFile: program.ignoreTimesheetrc,
     authors: program.authors,

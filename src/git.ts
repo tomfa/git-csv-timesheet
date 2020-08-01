@@ -12,13 +12,11 @@ export function isShallowGitRepo(path: string): boolean {
 
 export async function getCommits({
   gitPaths,
-  branch,
   countMerges,
   since,
   until,
 }: {
   gitPaths: string[];
-  branch: string | null;
   countMerges: boolean;
   since: string | Date;
   until: string | Date;
@@ -27,7 +25,6 @@ export async function getCommits({
     gitPaths.map(async (path) =>
       getCommitsForRepository({
         gitPath: path,
-        branch,
         countMerges,
         since,
         until,
@@ -42,13 +39,11 @@ export async function getCommits({
 
 export async function getCommitsForRepository({
   gitPath,
-  branch,
   countMerges,
   since,
   until,
 }: {
   gitPath: string;
-  branch: string | null;
   countMerges: boolean;
   since: string | Date;
   until: string | Date;
@@ -63,13 +58,7 @@ export async function getCommitsForRepository({
 
   const repository: Repository = await git.Repository.open(gitPath);
   const allReferences = await getAllReferences(repository);
-
-  let references;
-  if (branch) {
-    references = allReferences.filter((r) => r === 'refs/heads/' + branch);
-  } else {
-    references = allReferences.filter((r) => r.match(/refs\/heads\/.*/));
-  }
+  const references = allReferences.filter((r) => r.match(/refs\/heads\/.*/));;
 
   const allCommits = [];
   const latestBranchCommits: GitCommit[] = await Promise.all(

@@ -30,7 +30,6 @@ export const defaultConfig: Config = {
   emailAliases: {
     'linus@torvalds.com': 'linus@linux.com',
   },
-  branch: null,
   authors: [],
   ignoreConfigFile: false,
 };

@@ -119,9 +119,6 @@ Options:
   -m, --merge-request [false|true]      Include merge requests into
                                         calculation.
                                         [default: true]
-  -b, --branch [branch-name]            Analyze only data on the specified
-                                        branch.
-                                        [default: null]
   -i, --ignore-timesheetrc              Ignores .timesheetrc from home
                                         directory.
                                         [default: false]

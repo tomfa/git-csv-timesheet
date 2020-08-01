@@ -41,7 +41,6 @@ export type Config = {
   repositories: Array<string | RepositoryConfig>;
   authors: Array<string>;
   emailAliases: EmailAliases;
-  branch: string | null;
   ignoreConfigFile: boolean;
 };
 
