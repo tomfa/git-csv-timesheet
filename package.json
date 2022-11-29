@@ -27,6 +27,7 @@
   "homepage": "https://github.com/tomfa/git-csv-timesheet",
   "dependencies": {
     "commander": "^6.0.0",
+    "isomorphic-git": "^1.21.0",
     "moment": "^2.10.6",
     "nodegit": "^0.27.0"
   },
