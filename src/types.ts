@@ -35,8 +35,8 @@ export type RepositoryConfig = {
 export type Config = {
   maxCommitDiffInMinutes: number;
   firstCommitAdditionInMinutes: number;
-  since: string | Date;
-  until: string | Date;
+  since: 'always' | Date;
+  until: 'always' | Date;
   countMerges: boolean;
   repositories: Array<string | RepositoryConfig>;
   authors: Array<string>;
