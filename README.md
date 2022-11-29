@@ -56,6 +56,8 @@ timestamps of git commits. Read more about [how it works](#how-it-works) and [co
 
 ## How it works
 
+_git-csv-timesheet is inspired by [@kimmobrunfeldt/git-hours](https://github.com/kimmobrunfeldt/git-hours)._
+
 The algorithm for estimating hours is quite simple. For each author in the commit history, do the following:
 
 <br><br>
@@ -91,9 +93,6 @@ _To compensate the first commit whose work is unknown, we add extra hours to the
 _Continue until we have determined all coding sessions and sum the hours
 made by individual authors._
 
-<br>
-
-_The algorithm comes from [@kimmobrunfeldt/git-hours](https://github.com/kimmobrunfeldt/git-hours) and is about [30 lines of code](https://github.com/kimmobrunfeldt/git-hours/blob/8aaeee237cb9d9028e7a2592a25ad8468b1f45e4/index.js#L114-L143)_.
 
 ## Options
 
