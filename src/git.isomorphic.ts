@@ -29,9 +29,10 @@ export async function getCommitsForRepository({
   });
 
   const allCommits: Commit[] = [];
+  const cache = {};
   const branchCommits = await Promise.all(
     branchNames.map((ref) =>
-      getBranchCommits({ ref, since, until, dir: gitPath }),
+      getBranchCommits({ ref, since, until, dir: gitPath, cache }),
     ),
   );
   branchCommits.forEach((commitList) =>
@@ -56,16 +57,19 @@ async function getBranchCommits({
   dir,
   since,
   until,
+  cache,
 }: {
   ref: string;
   dir: string;
   since: Date | 'always';
   until: Date | 'always';
+  cache?: Record<string, unknown>;
 }): Promise<Commit[]> {
   let commits = await isoGit.log({
     ref,
     fs,
     dir,
+    cache,
     since: since === 'always' ? undefined : since,
   });
   if (until !== 'always') {
