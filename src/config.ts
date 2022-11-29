@@ -61,6 +61,10 @@ function parseInputDate(inputDate: string | Date): Date | 'always' {
       return moment().startOf('month').toDate();
     case 'lastmonth':
       return moment().startOf('month').subtract(1, 'month').toDate();
+    case 'thisyear':
+      return moment().startOf('year').toDate();
+    case 'lastyear':
+      return moment().startOf('year').subtract(1, 'year').toDate();
     case 'always':
       return 'always';
     default:
