@@ -61,6 +61,7 @@
     "lint:no-warnings": "eslint ./src --quiet",
     "lint:prettier": "prettier --check \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,mdx,md}\"",
+    "dev": "npm run compile && node ./dist/bin/timesheet",
     "compile": "rm -rf dist && tsc -b",
     "prepublish": "yarn compile && cp package-dist.json ./dist/package.json && cp README.md ./dist/README.md",
     "release": "yarn prepublish && np --contents=dist"

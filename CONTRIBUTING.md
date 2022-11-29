@@ -15,7 +15,15 @@ are used to run tasks.
 
 Install tools needed for development:
 
-    yarn
+```bash
+yarn
+```
+
+### Run script
+The command below compiles and runs timesheet locally
+```
+yarn dev
+```
 
 ## Formatting and linting
 
