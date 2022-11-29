@@ -1,4 +1,4 @@
-import * as nodeGit from './git.nodegit';
+import * as git from './git.isomorphic';
 import { Commit } from './types';
 import logger from './logger';
 import { isShallowGitRepo } from './git.utils';
@@ -42,5 +42,5 @@ export async function getCommitsForRepository(
     return [];
   }
 
-  return nodeGit.getCommitsForRepository(args);
+  return git.getCommitsForRepository(args);
 }
