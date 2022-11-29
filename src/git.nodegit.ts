@@ -12,8 +12,8 @@ export async function getCommitsForRepository({
 }: {
   gitPath: string;
   countMerges: boolean;
-  since: string | Date;
-  until: string | Date;
+  since: 'always' | Date;
+  until: 'always' | Date;
 }): Promise<Commit[]> {
   const repository = await nodeGit.Repository.open(gitPath);
   const tagsAndBranches = await getAllReferences(repository);
