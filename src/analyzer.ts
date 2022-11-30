@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import * as git from './git';
 import logger from './logger';
 
@@ -160,12 +161,54 @@ export async function analyzeTimeSpent(
       if (!completeSummary[repository]) {
         completeSummary[repository] = {};
       }
-      completeSummary[repository][email] = contributions[repository];
+      completeSummary[repository][
+        email
+      ] = appendDaysWithoutContribution(contributions[repository], {
+        minDate: config.since,
+        maxDate: config.until,
+      });
     });
   });
 
   return completeSummary;
 }
+
+const appendDaysWithoutContribution = (
+  contribution: RepoAuthorContribution,
+  options: { minDate: Date | 'always'; maxDate: Date | 'always' },
+): RepoAuthorContribution => {
+  const noContribution = { hours: 0, commits: 0 };
+  const addedContribution: RepoAuthorContribution = {};
+  let currDate =
+    options.minDate === 'always'
+      ? new Date(
+          Math.min(
+            ...Object.keys(contribution).map((k) =>
+              new Date(`${k}T00:00:00Z`).getTime(),
+            ),
+          ),
+        )
+      : options.minDate;
+  const maxDate =
+    options.maxDate === 'always'
+      ? new Date(
+          Math.max(
+            ...Object.keys(contribution).map((k) =>
+              new Date(`${k}T00:00:00Z`).getTime(),
+            ),
+          ),
+        )
+      : options.maxDate;
+  while (currDate <= maxDate) {
+    const isoKey = asISOday(currDate);
+    if (!contribution[isoKey]) {
+      addedContribution[isoKey] = noContribution;
+    }
+    // Moment hopefully handles DST changes?
+    currDate = moment(currDate).add(1, 'days').toDate();
+  }
+  return { ...addedContribution, ...contribution };
+};
 
 const oldestLastSorter = (a: Commit, b: Commit) =>
   a.date.getTime() - b.date.getTime();
